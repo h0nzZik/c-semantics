@@ -33,6 +33,7 @@ module CPP-DYNAMIC-SORTS
      syntax TemplateArg
      syntax CPPValue
      syntax ValueCategory
+     syntax EnumId
 endmodule
 
 module CPP-REVAL-SYNTAX
@@ -145,7 +146,7 @@ module CPP-DYNAMIC-SYNTAX
      syntax BlockScope ::= blockScope(QualId, SymBase, Int) [klabel(blockScopeCpp)]
      syntax TemplateParameterScope ::= "templateParameterScope"
      syntax FunctionPrototypeScope ::= "prototypeScope"
-     syntax EnumScope ::= enumScope(Namespace, CId)
+     syntax EnumScope ::= enumScope(EnumId)
      syntax Scope ::= NamespaceScope | ClassScope | BlockScope | TemplateParameterScope | FunctionPrototypeScope | EnumScope
 
      syntax Bool ::= inClassScope(Scope) [function]

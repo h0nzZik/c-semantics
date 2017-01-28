@@ -107,7 +107,8 @@ module COMMON-CONFIGURATION
                          <enum-id> .K </enum-id>
                          <enum-ut> .K </enum-ut>
                          <scoped> false </scoped>
-                         <enumerators> .List </enumerators>
+                         <enumerators> .Map </enumerators>
+                         <enum-complete> false </enum-complete>
                     </cppenum>
                </cpp-enums>
 
