@@ -55,42 +55,54 @@ module CPP-DECL-ENUM
      rule enumContext(X::CId, E::CPPEnumType, Enumerators:List, Fixed::Bool, UT::CPPIntegerType)
           => newEnum(E)
           ~> addToCurrentNamespace(X, E)
-          ~> scope(enumScope(getEnumId(E)), declareEnumerators(getEnumId(E), Enumerators, Fixed, UT))
+          ~> makeCompleteIfFixed(getEnumId(E), Fixed)
+          ~> scope(enumScope(getEnumId(E)), declareEnumerators(getEnumId(E), 0, Enumerators, Fixed, UT))
+          ~> makeCompleteIfNotFixed(getEnumId(E), Fixed)
 
-     syntax KItem ::= makeCompleteFixed(id : EnumId, fixed: Bool)
-     syntax KItem ::= makeCompleteNotFixed(id : EnumId, fixed: Bool)
+     syntax KItem ::= makeCompleteIfFixed(id : EnumId, fixed: Bool)
+     syntax KItem ::= makeCompleteIfNotFixed(id : EnumId, fixed: Bool)
 
-     rule makeCompleteFixed(_, false) => .
-     rule makeCompleteNotFixed(_, true) => .
-     rule <k> makeCompleteFixed(E::EnumId, true) => . ... </k>
-     rule <k> makeCompleteNotFixed(E::EnumId, false) => . ... </k>
+     rule makeCompleteIfFixed(_, false) => .
+     rule makeCompleteIfNotFixed(_, true) => .
+     rule makeCompleteIfFixed(E::EnumId, true) => makeComplete(E)
+     rule makeCompleteIfNotFixed(E::EnumId, false) => makeComplete(E)
+
+     syntax KItem ::= makeComplete(EnumId)
+
+     rule <k> makeComplete(E::EnumId) => . ... </k>
+          <enum-id> E </enum-id>
+          <enum-complete> _ => true </enum-complete>
 
 
-     syntax KItem ::= declareEnumerators(EnumId, List, fixed: Bool, ut: CPPIntegerType)
+     syntax KItem ::= declareEnumerators(EnumId, Int, List, Bool, CPPIntegerType)
+
+     // TODO do not use type(int) because it may not be large enough
+     rule declareEnumerators(_, Next::Int, ListItem(Enumerator(_, NoExpression() => prv(Next, noTrace, type(int)))) _::List, _, _)
+     context declareEnumerators(_, _, ListItem(Enumerator(_, HOLE:Expr)) _::List, _, _)
+
 
      // Type of an enumerator inside the declaration is enum's underlying type
      // if it is fixed, and type of initializing expression otherwise,
      // Hence we need to store the type of underlying expression...
-     // In the case of fixed UT we put there the UT.
-     rule declareEnumerators(_, .List, _, _) => .
-     rule declareEnumerators(E::EnumId, ListItem(Enumerator(X::CId, AE::AExpr)) L::List, Fixed::Bool, UT::CPPIntegerType)
-          => declareEnumerator(E, X, AE, Fixed, UT)
-          ~> declareEnumerators(E, L, Fixed, UT)
+     rule declareEnumerators(_, _, .List, _, _) => .
+     rule declareEnumerators(E::EnumId, Next::Int, ListItem(Enumerator(X::CId, prv(V::Int, _, _) #as Pr::PRVal)) L::List, Fixed::Bool, UT::CPPIntegerType)
+          => declareEnumerator(E, X, Pr, Fixed, UT)
+          ~> declareEnumerators(E, V +Int 1, L, Fixed, UT)
 
 
      // TODO can we rely on ODR, or should we explicitly check the right translation unit?
-     syntax KItem ::= declareEnumerator(EnumId, CId, AExpr, fixed: Bool, ut: CPPIntegerType) [strict(3)]
+     syntax KItem ::= declareEnumerator(EnumId, CId, PRVal, fixed: Bool, ut: CPPIntegerType)
 
      // Not fixed
-     rule <k> declareEnumerator(E::EnumId, X::CId, prv(V::CPPValue, Tr::Trace, T::CPPType), false, _) => . ...</k>
-          <enum-id> E </enum-id>
-          <enumerators> ES::Map => ES[X <- prv(V, Tr, T)] </enumerators>
+     rule declareEnumerator(E::EnumId, X::CId, prv(_,_,_) #as Pr::PRVal, false, _) => addEnumerator(E, X, Pr)
 
      // Fixed enumerator. TODO check that the value fits into the UT
-     rule <k> declareEnumerator(E::EnumId, X::CId, prv(V::CPPValue, Tr::Trace, _), true, UT::CPPIntegerType) => . ...</k>
-          <enum-id> E </enum-id>
-          <enumerators> ES::Map => ES[X <- prv(V, Tr, UT)] </enumerators>
+     rule declareEnumerator(E::EnumId, X::CId, prv(V::CPPValue, Tr::Trace, _), true, UT::CPPIntegerType) => addEnumerator(E, X, prv(V, Tr, UT))
 
+     syntax KItem ::= addEnumerator(enum: EnumId, id: CId, v: PRVal)
+     rule <k> addEnumerator(E::EnumId, X::CId, V::PRVal) => . ... </k>
+         <enum-id> E </enum-id>
+         <enumerators> ES::Map => ES[X <- V] </enumerators>
 
 endmodule
 
