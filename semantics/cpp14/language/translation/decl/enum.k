@@ -16,6 +16,7 @@ module CPP-DECL-ENUM
      imports CPP-ENV-SYNTAX
      imports CPP-SYNTAX
      imports CPP-BITSIZE-SYNTAX
+     imports INT
 
      syntax CPPEnumType ::= declareEnumName(ns: Namespace, id: CId, ut: CPPIntegerType, scoped: Bool) [function]
      rule declareEnumName(N::Namespace, X::CId, UT::CPPIntegerType, false) => t(noQuals, .Set, unscopedEnum(enumId(N::Namespace :: X), UT))
@@ -46,7 +47,7 @@ module CPP-DECL-ENUM
 
      // We do not support enumerators yet
      // We do not support not-fixed enums.
-     rule <k> EnumDef(X::CId, NoNNS(), Scoped::Bool, Fixed::Bool, UT::CPPIntegerType, Enumerators:List)
+     rule <k> EnumDef(X::CId, NoNNS(), Scoped::Bool, Fixed::Bool, UT::CPPIntegerType, Enumerators::List)
           => enumContext(X, declareEnumName(N, X, UT, Scoped), Enumerators, Fixed, UT) ...</k>
           <curr-scope> namespaceScope(N::Namespace) </curr-scope>
           <curr-tu> Tu::String </curr-tu>
@@ -103,6 +104,14 @@ module CPP-DECL-ENUM
      rule <k> addEnumerator(E::EnumId, X::CId, V::PRVal) => . ... </k>
          <enum-id> E </enum-id>
          <enumerators> ES::Map => ES[X <- V] </enumerators>
+
+     // 7.2/3: ... An opaque-enum-declaration is either a redeclaration of an enumeration in the current scope...
+     rule <k> OpaqueEnumDeclaration(X::CId, Scoped::Bool, UT::CPPIntegerType) => . ...</k>
+          <curr-scope> namespaceScope(N::Namespace) </curr-scope>
+          <enum-id> enumId(N::Namespace :: X) </enum-id>
+          <enum-ut> UT </enum-ut>
+          
+     // 7.2/3 ... (TODO)
 
 endmodule
 
