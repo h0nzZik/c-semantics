@@ -1151,12 +1151,6 @@ public:
     return false;
   }
 
-  bool VisitEnumType(EnumType *T) {
-     AddKApplyNode("EnumTypeName", 1);
-     TRY_TO(TraverseDeclarationName(T->getDecl()->getDeclName()));
-     return false;
-  }
-
   void VisitTypeKeyword(ElaboratedTypeKeyword Keyword) {
     switch(Keyword) {
     case ETK_Struct:
