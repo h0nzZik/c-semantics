@@ -1,6 +1,6 @@
 extern "C" void abort();
 
-enum E : int {};
+enum E {};
 
 E e;
 
@@ -10,4 +10,6 @@ int main() {
 
 	if (sizeof(e) != sizeof(int))
 		abort();
+
+	E h = (E)2;
 }
