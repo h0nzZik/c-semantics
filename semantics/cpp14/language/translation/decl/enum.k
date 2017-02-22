@@ -46,8 +46,8 @@ module CPP-DECL-ENUM
 
 
      syntax CPPEnumType ::= declareEnumName(ns: Namespace, id: CId, ut: CPPIntegerType, scoped: Bool, fixed: Bool) [function]
-     rule declareEnumName(N::Namespace, X::CId, UT::CPPIntegerType, false, Fixed:Bool) => t(noQuals, .Set, unscopedEnum(enumId(N::Namespace :: X), UT, false))
-     rule declareEnumName(N::Namespace, X::CId, UT::CPPIntegerType, true, true)  => t(noQuals, .Set,   scopedEnum(enumId(N::Namespace :: X), UT))
+     rule declareEnumName(N::Namespace, X::CId, UT::CPPIntegerType, false, Fixed:Bool) => t(noQuals, .Set, unscopedEnum(enumId(N::Namespace :: Enum(X)), UT, false))
+     rule declareEnumName(N::Namespace, X::CId, UT::CPPIntegerType, true, true)  => t(noQuals, .Set,   scopedEnum(enumId(N::Namespace :: Enum(X)), UT))
 
      syntax KItem ::= addToCurrentNamespace(CId, CPPEnumType)
      rule <k> addToCurrentNamespace(X::CId, E::CPPEnumType) => . ... </k>
@@ -142,7 +142,7 @@ module CPP-DECL-ENUM
 
      rule firstGreaterThanOrEqualTo(Exp::Int, Tresh::Int) => firstGreaterThanOrEqualTo(Exp +Int 1, Tresh) [owise]
 
-     rule calculateEnumValues(T::CPPEnumType, Min::Int, Max::Int) => setEnumMinMax(T, Min /*calculateMinEnumValue(Min, Max)*/, calculateMaxEnumValue(Min, Max))
+     rule calculateEnumValues(T::CPPEnumType, Min::Int, Max::Int) => setEnumMinMax(T, calculateMinEnumValue(Min, Max), calculateMaxEnumValue(Min, Max))
 
      syntax KItem ::= setEnumMinMax(CPPEnumType, min: Int, max: Int)
 
@@ -171,7 +171,7 @@ module CPP-DECL-ENUM
      // 7.2/3: ... An opaque-enum-declaration is either a redeclaration of an enumeration in the current scope...
      rule <k> OpaqueEnumDeclaration(X::CId, Scoped::Bool, UT::CPPIntegerType) => . ...</k>
           <curr-scope> namespaceScope(N::Namespace) </curr-scope>
-          <enum-id> enumId(N::Namespace :: X) </enum-id>
+          <enum-id> enumId(N::Namespace :: Enum(X)) </enum-id>
           <enum-ut> UT </enum-ut>
           
      // 7.2/3 ... (TODO)

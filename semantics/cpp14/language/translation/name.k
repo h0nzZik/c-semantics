@@ -38,11 +38,13 @@ module CPP-TRANSLATION-NAME
                    | nameLookupInFullNamespace(CId, MaybeNNS, Tag, isnns: Bool)
                    | nameLookupInNamespaceScope(CId, NNS, Tag, isnns: Bool)
                    | nameLookupInNamespaces(CId, set: Set, Tag, isnns: Bool, result: Expr)
+                   | lookupEnumerator(CId, Enum)
 
      syntax Namespace ::= getInnermostNamespace(Scope) [function, klabel(getInnermostNamespace1)]
      rule getInnermostNamespace(blockScope(N:Namespace :: _, _, _)) => N
      rule getInnermostNamespace(classScope(N:Namespace :: _)) => N
      rule getInnermostNamespace(namespaceScope(N::Namespace)) => N
+     rule getInnermostNamespace(enumScope(enumId(N:Namespace :: _))) => N
 
      // name lookup in namespace scope
      rule <k> nameLookupInNamespaceScope(X::CId, N::Namespace, Tag::Tag, IsNNS::Bool)
@@ -138,6 +140,23 @@ module CPP-TRANSLATION-NAME
           requires (notBool X in_keys(Env) orBool IsNNS)
            andBool notBool X in_keys(Types)
 
+     rule <k> lookupEnumerator(X::CId, E::Enum) => V ... </k>
+          <curr-scope> enumScope(enumId(E)) </curr-scope>
+          <enum-id> enumId(E) </enum-id>
+          <enumerators>... X |-> V::PRVal </enumerators>
+
+     rule <k> lookupEnumerator(X::CId, E::Enum) => prv(V, Tr, ET) ... </k>
+          <curr-scope> Sc::Scope </curr-scope>
+          <enum-id> enumId(E) </enum-id>
+          <enum-type> ET::CPPType </enum-type>
+          <enumerators>... X |-> prv(V::CPPValue, Tr::Trace, _) </enumerators>
+          requires Sc =/=K enumScope(enumId(E))
+
+     rule <k> lookupEnumerator(X::CId, E::Enum) => notFound(X) ...</k>
+          <enum-id> enumId(E) </enum-id>
+          <enumerators> Enumerators::Map </enumerators>
+          requires notBool X in_keys(Enumerators)
+
      // lookup member in class (and base-classes)
      rule <k> lookupMember(X::CId, C::Class, NoTag(), false) => classSet(C, X, S) ...</k>
           <class-id> C </class-id>
@@ -190,6 +209,7 @@ module CPP-TRANSLATION-NAME
 
      rule qualifiedNameLookup(X::CId, N:Namespace, IsNNS::Bool) => nameLookupInNamespaceScope(X, N, NoTag(), IsNNS)
      rule qualifiedNameLookup(X::CId, C:Class, IsNNS::Bool) => lookupMember(X, C, NoTag(), IsNNS)
+     rule qualifiedNameLookup(X::CId, E:Enum, IsNNS::Bool) => lookupEnumerator(X::CId, E)
 
      rule Name(N::NNS, X::CId)
        => resolveUniqueDecl(#if N ==K NoNNS()
@@ -217,6 +237,8 @@ module CPP-TRANSLATION-NAME
      syntax KItem ::= extractNNS(K) [strict]
      rule extractNNS(nsRef(N::Namespace)) => N
      rule extractNNS(t(_, _, classType(C::Class))) => C
+     rule extractNNS(t(_, _, scopedEnum(enumId(E::Enum), _))) => E
+     rule extractNNS(t(_, _, unscopedEnum(enumId(E::Enum), _, _))) => E
 
      syntax Expr ::= argDependentNameLookup(CId, StrictList, StrictList, Expr) [strict(4)]
                    | #argDependentNameLookup(CId, StrictList, List, Set, CandidateSet)
