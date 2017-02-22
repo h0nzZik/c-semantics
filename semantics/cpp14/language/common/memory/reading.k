@@ -34,6 +34,7 @@ module CPP-MEMORY-READING
           requires To ==Int (cfg:ptrsize *Int cfg:bitsPerByte)
      rule interpret(prv(encodedValue(F:Float, 0, To::Int), Tr::Trace, T:CPPFloatingType)) => prv(F, Tr, T)
           requires isFullFloat(F, To)
+
      rule interpret(prv(I:Int, Tr::Trace, T:CPPIntegerType))
           => #if max(T) >=Int I #then prv(I, Tr, T) #else interpret(prv(I -Int (1 <<Int absInt(bitSizeofType(T))), Tr, T)) #fi
      rule interpret(prv(encodedValue(nullptrVal, 0, To::Int), Tr::Trace, T:CPPNullPtrTType)) => prv(nullptrVal, Tr, T)

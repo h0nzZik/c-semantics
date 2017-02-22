@@ -230,7 +230,6 @@ module CPP-TYPING-SYNTAX
 
      syntax EnumId ::= getEnumId(CPPEnumType) [function]
      syntax Bool ::= getScoped(CPPEnumType) [function]
-//                   | hasFixedUnderlyingType(CPPEnumType) [function]
 endmodule
 
 module CPP-TYPING
@@ -343,7 +342,6 @@ module CPP-TYPING
      rule underlyingType(scopedEnum(_, T::CPPIntegerType)) => simpleType(T)
      rule underlyingType(unscopedEnum(_, T::CPPIntegerType, _)) => simpleType(T)
 
-
      rule inRange(I:Int, T::CPPIntegerType)
           => I <=Int max(T) andBool I >=Int min(T)
      rule inRange(F:Float, T::CPPFloatingType)
@@ -404,8 +402,6 @@ module CPP-TYPING
      rule getScoped(t(_, _, unscopedEnum(_, _, _))) => false
      rule getEnumId(t(_, _, scopedEnum(X::EnumId, _))) => X
      rule getEnumId(t(_, _, unscopedEnum(X::EnumId, _, _))) => X
-     //rule hasFixedUnderlyingType(t(_, _, scopedEnum(_, _))) => true
-     //rule hasFixedUnderlyingType(t(_, _, unscopedEnum(X::EnumId, _, Fixed:Bool))) => Fixed
 
      syntax Int ::= #getEnumMin(K) [function]
                   | #getEnumMax(K) [function]
