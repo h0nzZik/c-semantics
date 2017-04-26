@@ -6,6 +6,7 @@ require "conversion.k"
 require "dynamic.k"
 require "error.k"
 require "map.k" 
+require "io.k"
 require "promotion-context.k"
 require "reference.k"
 require "settings.k"
@@ -62,4 +63,5 @@ module CPP-COMMON
      imports CPP-COMMON-STMT-EXPR
 
      imports CPP-COMMON-EXTENSIONS
+     imports CPP-COMMON-IO
 endmodule
