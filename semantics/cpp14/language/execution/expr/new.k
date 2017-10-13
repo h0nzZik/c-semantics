@@ -4,7 +4,7 @@ module CPP-EXPR-NEW
      imports MEMORY-SYNTAX
      imports CPP-CONVERSION-SYNTAX
      imports CPP-DYNAMIC-SYNTAX
-     imports CPP-ENV-SYNTAX
+     imports CPP-EXEC-ENV-SYNTAX
      imports CPP-SETTINGS-SYNTAX
      imports CPP-SYNTAX
      imports CPP-TYPING-SYNTAX
@@ -25,12 +25,12 @@ module CPP-EXPR-NEW
           <new-size-map>... I |-> Size::Int ...</new-size-map>
 
      rule callAllocationFunction(T::CPPType, prv(Loc::SymLoc, _, _), Init::Expr, Size::Int, I::Int)
-          => addToEnv(#NoName(I), type(arrayType(T, Size)), base(Loc), false)
+          => addToExecEnv(#NoName(I), type(arrayType(T, Size)), base(Loc), false)
           ~> setEffectiveType(base(Loc), type(arrayType(T, Size)))
           ~> makePRVal(Init)
 
      rule callAllocationFunction(T::CPPType, prv(Loc::SymLoc, _, _), Init::Expr, I::Int)
-          => addToEnv(#NoName(I), T, base(Loc), false)
+          => addToExecEnv(#NoName(I), T, base(Loc), false)
           ~> setEffectiveType(base(Loc), T)
           ~> & Init
 

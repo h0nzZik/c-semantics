@@ -43,7 +43,7 @@ module CPP-ABSTRACT-SYNTAX
 
      syntax TemplateParam ::= param(Dep) [function]
 
-     syntax SymBase ::= "nonStatic" 
+     syntax SymBase ::= "nonStatic"
 
      syntax TypeId ::= TypeId(AType)
                      | DestructorTypeId(AType)
@@ -190,9 +190,14 @@ module CPP-ABSTRACT-SYNTAX
      syntax Stmt ::= DeclStmt(List)
                   // GotoStmt(CId)
                    | ReturnStmt(Init)
+                   | IfTStmt(Decl, Stmt, Stmt)
+                   | IfTStmt(Expr, Stmt, Stmt)
+                   | WhileTStmt(Decl, Stmt)
+                   | WhileTStmt(Expr, Stmt)
                    | NullStmt()
-                   | ForStmt(Stmt, Expr, Stmt, Stmt)
-                   | ForStmt(Stmt, Decl, Stmt, Stmt)
+                   | ForTStmt(Stmt, Expr, Stmt, Stmt)
+                   | ForTStmt(Stmt, Decl, Stmt, Stmt)
+                   | ForTStmt(Expr, Stmt, Stmt)
                    | TemplateDefinitionStmt(K) // synthetic statement created by the body of a function template definition when it's evaluted before instantiation
       
      syntax AStmt ::= NoStatement()
@@ -334,5 +339,7 @@ module CPP-ABSTRACT-REWRITING
           requires notBool isDependentInScope(T)
      rule prd(E::Expr, _, _, T:CPPTypeExpr) => E
           requires notBool isDependentInScope(T)
+
+     context IfTStmt((HOLE:Expr => reval(HOLE)), _, _) [result(PRVal)]
 
 endmodule

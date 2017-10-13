@@ -17,12 +17,13 @@ module CPP-DECL-ENUM
      imports CPP-ERROR-SYNTAX
      imports CPP-SYNTAX
      imports CPP-BITSIZE-SYNTAX
+     imports CPP-TRANSLATION-CONSTANT-SYNTAX
      imports INT
      imports STRING
 
      rule <k> EnumDef(X::CId, NoNNS(), Scoped::Bool, Fixed::Bool, UT::CPPIntegerType, Enumerators::List)
           => enumContext(X, declareEnumName(createEnumName(X, Sc), UT, Scoped, Fixed), Enumerators, Fixed, UT, false) ...</k>
-          <curr-scope> Sc::Scope </curr-scope>
+          <curr-tr-scope> Sc::Scope </curr-tr-scope>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
 
@@ -55,7 +56,7 @@ module CPP-DECL-ENUM
           <class-id> C </class-id>
           <ctypes> NT::Map => NT[X <- E] </ctypes>
      rule <k> #addEnumToEnv(X::CId, NoNamespace(), E::CPPEnumType) => . ... </k>
-          <types> NT::Map => NT[X <- E] </types>
+          <tr-types> NT::Map => NT[X <- E] </tr-types>
 
 
      syntax KItem ::= enumContext(CId, CPPEnumType, List, fixed: Bool, ut: CPPIntegerType, opaque: Bool) [strict(2)]
@@ -67,7 +68,7 @@ module CPP-DECL-ENUM
 
      syntax KItem ::= inEnumScope(CPPEnumType, K)
      rule <k> inEnumScope(E::CPPEnumType, K:K) => K ~> setScope(OldScope) ... </k>
-          <curr-scope> OldScope::Scope => enumScope(getEnumId(E))  </curr-scope>
+          <curr-tr-scope> OldScope::Scope => enumScope(getEnumId(E))  </curr-tr-scope>
 
 
      syntax KItem ::= newEnum(Enum, CPPEnumType, fixed: Bool, opaque: Bool)
@@ -150,7 +151,10 @@ module CPP-DECL-ENUM
           requires notBool inRange(Next, type(PrevType)) andBool firstSuitableType(Next, Next, allIntegralTypes) ==K no-type
 
      rule declareEnumerators(_, _, _, _, _, ListItem(Enumerator(_, prv(_, _, T:CPPUnscopedEnumType => underlyingType(T)))) _::List, _, _)
-     context declareEnumerators(_, _, _, _, _, ListItem(Enumerator(_, HOLE:Expr)) _::List, _, _)
+     // Nejsem si uplne jisty tim result. Asi by to chtelo mit specialni sort pro vyhodnocene veci, abych to mohl psat do tech atributu.
+     context declareEnumerators(_, _, _, _, _, ListItem(Enumerator(_, HOLE:Expr => evalConstantExpression(HOLE))) _::List, _, _) [result(Val)]
+     context declareEnumerators(_, _, _, _, _, ListItem(Enumerator(_, HOLE:Val => reval(HOLE))) _::List, _, _) [result(PRVal)]
+
 
      // Type of an enumerator inside the declaration is enum's underlying type
      // if it is fixed, and type of initializing expression otherwise,
@@ -282,13 +286,13 @@ module CPP-DECL-ENUM
 
      // 7.2/3: ... An opaque-enum-declaration is either a redeclaration of an enumeration in the current scope...
      rule <k> OpaqueEnumDeclaration(X::CId, Scoped::Bool, UT::CPPIntegerType) => . ...</k>
-          <curr-scope> namespaceScope(N::Namespace) </curr-scope>
+          <curr-tr-scope> namespaceScope(N::Namespace) </curr-tr-scope>
           <enum-id> N::Namespace :: Enum(X) </enum-id>
 
      // 7.2/3 ... or a declaration of a new enumeration.
      rule <k> OpaqueEnumDeclaration(X::CId, Scoped::Bool, UT::CPPIntegerType) 
      => enumContext(X, declareEnumName(createEnumName(X, Sc), UT, Scoped, true), .List, true, UT, true) ...</k>
-          <curr-scope> Sc::Scope </curr-scope>
+          <curr-tr-scope> Sc::Scope </curr-tr-scope>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
 

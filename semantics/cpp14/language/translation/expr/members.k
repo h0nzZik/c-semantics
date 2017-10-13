@@ -10,4 +10,8 @@ module CPP-TRANSLATION-EXPR-MEMBERS
 
      rule fieldExp(E:LExpr, T::CPPType, Offset::Int)
           => le(fieldExp(E, T, Offset), trace(E), T)
+
+     rule <k> This() => Obj ...</k>
+          <tr-this> Obj::Expr </tr-this>
+
 endmodule

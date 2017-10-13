@@ -8,14 +8,14 @@ module CPP-STMT-CANONICALIZATION
 
       rule LabelAStmt(X::CId, L::List) => LabelStmt(X, canonicalizeAStmts(L)) [anywhere]
 
-      rule IfAStmt(E::Expr, S1:Block, S2:Block) => IfStmt(E, canonicalizeAStmt(S1), canonicalizeAStmt(S2)) [anywhere]
+      rule IfAStmt(E::Expr, S1:Block, S2:Block) => IfTStmt(E, canonicalizeAStmt(S1), canonicalizeAStmt(S2)) [anywhere]
       rule IfAStmt(_::Expr, _, (NoStatement() => CompoundAStmt(.List))) [anywhere]
       rule IfAStmt(_::Expr, S::Stmt => CompoundAStmt(ListItem(S)), _)
            requires notBool isBlock(S) [anywhere]
       rule IfAStmt(_::Expr, _, S::AStmt => CompoundAStmt(ListItem(S)))
            requires notBool isBlock(S) andBool S =/=K NoStatement() [anywhere]
 
-      rule WhileAStmt(E::Expr, S:Block) => WhileStmt(E, canonicalizeAStmt(S)) [anywhere]
+      rule WhileAStmt(E::Expr, S:Block) => WhileTStmt(E, canonicalizeAStmt(S)) [anywhere]
       rule WhileAStmt(_::Expr, S::Stmt => CompoundAStmt(ListItem(S)))
            requires notBool isBlock(S) [anywhere]
 
@@ -23,8 +23,8 @@ module CPP-STMT-CANONICALIZATION
       rule ForAStmt(_, (NoExpression() => BoolLiteral(true)), _, _) [anywhere]
       rule ForAStmt(_, _::AExpr, _, S::Stmt => CompoundAStmt(ListItem(S)))
            requires notBool isBlock(S) [anywhere]
-      rule ForAStmt(D::Stmt, C::Expr, E:Expr, S:Block) => ForStmt(D, C, ExpressionStmt(E), S)
-      rule ForAStmt(D::Stmt, C::Expr, NoExpression(), S:Block) => ForStmt(D, C, NullStmt(), S)
+      rule ForAStmt(D::Stmt, C::Expr, E:Expr, S:Block) => ForTStmt(D, C, ExpressionStmt(E), S)
+      rule ForAStmt(D::Stmt, C::Expr, NoExpression(), S:Block) => ForTStmt(D, C, NullStmt(), S)
 
       rule TryAStmt(S:Block, L::List) => TryStmt(canonicalizeAStmt(S), canonicalizeAStmts(L)) [anywhere]
       rule CatchAStmt(D:Decl, S:Block) => CatchStmt(D, canonicalizeAStmt(S)) [anywhere]

@@ -11,7 +11,7 @@ module CPP-DECL-USING
 
      // using an object
      rule <k> UsingDecl(false, UsingN::Namespace, X::CId) => .K ...</k>
-          <curr-scope> namespaceScope(N::Namespace) </curr-scope>
+          <curr-tr-scope> namespaceScope(N::Namespace) </curr-tr-scope>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
           <ns>...
@@ -25,7 +25,7 @@ module CPP-DECL-USING
 
      // using a type
      rule <k> UsingDecl(false, UsingN::Namespace, X::CId) => .K ...</k>
-          <curr-scope> namespaceScope(N::Namespace) </curr-scope>
+          <curr-tr-scope> namespaceScope(N::Namespace) </curr-tr-scope>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
           <ns>...

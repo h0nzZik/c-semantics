@@ -38,7 +38,7 @@ module CPP-PROCESS-LABEL
           <computation-tail> Tail:K </computation-tail>
           <goto-loop-stack> LoopStack::List </goto-loop-stack>
           <decl-stack> DeclStack::List </decl-stack>
-          <curr-scope> blockScope(_, F::SymBase, _) </curr-scope>
+          <curr-tr-scope> blockScope(_, F::SymBase, _) </curr-tr-scope>
           <goto-nesting-depth> Depth::Int </goto-nesting-depth>
           <goto-block-history> BlockHistory::List </goto-block-history>
           <curr-tu> Tu::String </curr-tu>
@@ -74,16 +74,16 @@ module CPP-PROCESS-LABEL
 
      rule <k> waitingOnGotoMap ...</k>
           <computation> L:CabsLoc => .K ...</computation>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
 
      rule <k> waitingOnGotoMap ...</k>
           <computation>
-               declareNonStaticObject(X::CId, T::CPPType, Init:K, Type::DeclarationType, D::Duration, S::Set) => .K
+               declareNonStaticObjectExec(X::CId, T::CPPType, Init:K, Type::DeclarationType, D::Duration, S::Set) => .K
           ...</computation>
           <decl-stack>...
                .List
                => ListItem(frozenDeclaration(Depth, BlockNum,
-                    declareNonStaticObject(X, T, Init, Type, D, S)))
+                    declareNonStaticObjectExec(X, T, Init, Type, D, S)))
           </decl-stack>
           <goto-nesting-depth> Depth::Int </goto-nesting-depth>
           <goto-block-history> ListItem(BlockNum::Int) ...</goto-block-history>

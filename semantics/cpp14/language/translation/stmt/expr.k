@@ -4,18 +4,23 @@ module CPP-STMT-EXPR
      imports CPP-SYNTAX
      imports CPP-COMMON-STMT-EXPR-SYNTAX
 
+
+     rule ExpressionStmt(V:Val) => .K
+          requires isEvalVal(V) andBool Execution()
+
      rule <k> ExpressionStmt(V:Val)  => .K ...</k>
           <elab>... .K => ExpressionStmt(V) </elab>
           requires (isTExpr(V) orBool isDep(V)) andBool notBool isConvertableDiscardedExpr(V)
+                    andBool notBool Execution()
 
      rule ExpressionStmt(V::GLVal => prDiscardedExpr(V))
-          requires isConvertableDiscardedExpr(V)
+          requires isConvertableDiscardedExpr(V) andBool notBool Execution()
 
      // we add the first clause of this side condition in order to ensure
      // translation gets stuck if the expression evaluates to something that
      // makes the program ill-formed, like "cannot-convert" or "notFound"
      rule ExpressionStmt(V::Val) => .K
-          requires isEvalVal(V) andBool notBool isConvertableDiscardedExpr(V)
+          requires isEvalVal(V) andBool notBool isConvertableDiscardedExpr(V) andBool notBool Execution()
 
      rule prDiscardedExpr(pre(E::Expr, Tr::Trace, T::CPPType)) => pre(prDiscardedExpr(E), Tr, T)
      rule glDiscardedExpr(le(E::Expr, Tr::Trace, T::CPPType)) => pre(glDiscardedExpr(E), Tr, T)

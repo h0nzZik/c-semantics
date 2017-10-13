@@ -86,7 +86,7 @@ module CPP-TYPING-EXPR
      rule typeof(T:Typed => type(T))
 
      rule <k> typeof(This() => type(V)) ...</k>
-          <this> V:PRVal </this>
+          <tr-this> V:PRVal </tr-this>
 
      rule typeof(SizeofExpr(_) => type(size_t))
      rule typeof(SizeofType(_) => type(size_t))

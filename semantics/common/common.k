@@ -4,12 +4,14 @@ require "builtin.k"
 require "compat.k"
 require "configuration.k"
 require "error.k"
+require "function-call.k"
 require "init.k"
 require "memory.k"
 require "resolution.k"
 require "settings.k"
 require "symloc.k"
 require "syntax.k"
+require "return.k"
 
 module COMMON
   imports ALIGNMENT

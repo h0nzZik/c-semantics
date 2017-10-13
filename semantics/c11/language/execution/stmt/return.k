@@ -1,10 +1,3 @@
-module RETURN-SYNTAX
-     imports BASIC-K
-
-     syntax KItem ::= return(K)
-
-endmodule
-
 module C-STMT-RETURN
      imports RETURN-SYNTAX
      imports C-CONFIGURATION

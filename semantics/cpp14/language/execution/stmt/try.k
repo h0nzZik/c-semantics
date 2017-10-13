@@ -6,7 +6,7 @@ module CPP-STMT-TRY
      imports C-SEQUENCE-POINT-SYNTAX
      imports CPP-CONVERSION-SYNTAX
      imports CPP-DYNAMIC-SYNTAX
-     imports CPP-ENV-SYNTAX
+     imports CPP-EXEC-ENV-SYNTAX
      imports CPP-ERROR-SYNTAX
      imports CPP-SETTINGS-SYNTAX
      imports CPP-SYNTAX

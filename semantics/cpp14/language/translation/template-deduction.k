@@ -91,7 +91,7 @@ module CPP-TEMPLATE-DEDUCTION
      rule locateReturns(_, (ListItem(LabelStmt(_, L::List)) => L) _)
      rule locateReturns(_, (ListItem(GotoStmt(_)) => .List) _)
      rule locateReturns(_, (ListItem(ExpressionStmt(_)) => .List) _)
-     rule locateReturns(_, (ListItem(IfStmt(_::Expr, S1::Stmt, S2::Stmt)) => ListItem(S1) ListItem(S2)) _)
+     rule locateReturns(_, (ListItem(IfStmt(_::Expr, S1::Stmt, S2::Stmt)) => ListItem(S1) ListItem(S2)) _) // TODO ma tu byt IfStmt or IfTStmt?
      rule locateReturns(_, (ListItem(DeclStmt(_)) => .List) _)
      rule locateReturns(_, (ListItem(BreakStmt()) => .List) _)
      rule locateReturns(_, (ListItem(NullStmt()) => .List) _)

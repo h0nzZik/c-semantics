@@ -206,29 +206,29 @@ module CPP-TRANSLATION-NAME
           requires variable in Mask
 
      rule <k> lookupNameInBlock(X::CId, NoTag(), Mask::Set) => cSet(S, NoNamespace() :: X) ...</k>
-          <env>... X |-> S::TypeMap ...</env>
+          <tr-env>... X |-> S::TypeMap ...</tr-env>
           requires envMask(X |-> S, X, Mask)
 
      rule <k> lookupNameInBlock(X::CId, _, Mask::Set) => T ...</k>
-          <types>... X |-> T::CPPType ...</types>
+          <tr-types>... X |-> T::CPPType ...</tr-types>
           requires type in Mask
 
      rule <k> lookupNameInBlock(X::CId, _, Mask::Set) => notFound(X) ...</k>
-          <env> Env::Map </env>
-          <types> Types::Map </types>
+          <tr-env> Env::Map </tr-env>
+          <tr-types> Types::Map </tr-types>
           <enums> UE::Map </enums>
           requires (notBool X in_keys(Env) orBool notBool envMask(Env, X, Mask))
            andBool (notBool X in_keys(Types) orBool notBool type in Mask)
            andBool (notBool X in_keys(UE) orBool notBool variable in Mask)
 
      rule <k> lookupEnumerator(X::CId, E::Enum, Mask::Set, C:K) => #if C ==K .K #then V #else classSet(V, {C}:>Class :: X, SetItem(C)) #fi ... </k>
-          <curr-scope> enumScope(E) </curr-scope>
+          <curr-tr-scope> enumScope(E) </curr-tr-scope>
           <enum-id> E </enum-id>
           <enumerators>... X |-> V::PRVal </enumerators>
           requires variable in Mask
 
      rule <k> lookupEnumerator(X::CId, E::Enum, Mask::Set, C:K) => #if C ==K .K #then prv(V, Tr, ET) #else classSet(prv(V, Tr, ET), {C}:>Class :: X, SetItem(C)) #fi ... </k>
-          <curr-scope> Sc::Scope </curr-scope>
+          <curr-tr-scope> Sc::Scope </curr-tr-scope>
           <enum-id> E </enum-id>
           <enum-type> ET::CPPType </enum-type>
           <enumerators>... X |-> prv(V::CPPValue, Tr::Trace, _) </enumerators>
@@ -327,7 +327,7 @@ module CPP-TRANSLATION-NAME
 
      rule (.K => argDependentNameLookup(X, Args)) ~> CallExpr(Name(NoNNS(), X::CId), Args::StrictList, krlist(.List))
      rule <k> CallExpr((ExprLoc(L::CabsLoc, E::Expr) => E), Args::StrictList, krlist(.List)) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
      context CallExpr(Name(HOLE:NNS, _), _, _)
              requires HOLE =/=K NoNNS()
              [result(NNSVal)]
@@ -358,22 +358,26 @@ module CPP-TRANSLATION-NAME
      rule qualifiedNameLookup(X::CId, C:Class, Mask::Set) => lookupMember(X, C, true, NoTag(), Mask)
      rule qualifiedNameLookup(X::CId, E:Enum, Mask::Set) => lookupEnumerator(X::CId, E, Mask, .K)
 
-     rule Name(N::NNS, X::CId)
+     // Nojo, ale co kdyz zrovna vyhodnocujeme ct expression?
+     rule <k> Name(N::NNS, X::CId)
        => resolveUniqueDecl(#if N ==K NoNNS()
                             #then nameLookup(X, NoTag(), defaultMask)
                             #else qualifiedNameLookup(X, N, defaultMask)
-                            #fi, Name(N, X), false)
+                            #fi, ExecName(N, X), false)
+          ...</k>
 
-     rule & Name(N::NNS, X::CId)
+     rule <k> & Name(N::NNS, X::CId)
        => & resolveUniqueDecl(#if N ==K NoNNS()
                               #then nameLookup(X, NoTag(), defaultMask)
                               #else qualifiedNameLookup(X, N, defaultMask)
-                              #fi, Name(N, X), N =/=K NoNNS())
+                              #fi, ExecName(N, X), N =/=K NoNNS())
+          ...</k>
+
 
      context & HOLE:Expr
              requires notBool isName(HOLE) andBool notBool isExprLoc(HOLE)
      rule <k> & (ExprLoc(L::CabsLoc, E::Expr) => E) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
 
      rule ElaboratedTypeSpecifier(T::Tag, X::CId, NoNNS()) => resolveElabSpecifier(T, nameLookup(X, T, typeMask))
      requires T =/=K NoTag()
@@ -385,9 +389,9 @@ module CPP-TRANSLATION-NAME
      context qualifiedNameLookup(_, (HOLE:NNS), _) [result(NNSVal)]
 
      rule <k> NoNNS() => N ...</k>
-          <curr-scope> namespaceScope(N::Namespace) </curr-scope>
+          <curr-tr-scope> namespaceScope(N::Namespace) </curr-tr-scope>
      rule <k> NoNNS() => NoNamespace() ...</k>
-          <curr-scope> _:BlockScope </curr-scope>
+          <curr-tr-scope> _:BlockScope </curr-tr-scope>
 
      rule NNS(X:CId) => extractNNS(nameLookup(X, NoTag(), nnsMask))
      rule NNS(Name(N::NNS, X::CId)) => extractNNS(qualifiedNameLookup(X, N, nnsMask))
@@ -410,7 +414,7 @@ module CPP-TRANSLATION-NAME
                     | specializeTypeTemplate(QualId, CPPType, List)
 
      rule <k> nameLookup(X::CId, Tag::Tag, Mask::Set) => nameLookupInScope(X, Tag, Mask, Scope) ...</k>
-          <curr-scope> Scope::Scope </curr-scope>
+          <curr-tr-scope> Scope::Scope </curr-tr-scope>
 
      rule nameLookupInScope(X::CId, Tag::Tag, Mask::Set, Scope::Scope) => lookupNameInFullClass(X, classFromScope(Scope), isInBody(Scope), isBlockScope(Scope), Tag, Mask)
           requires inClassScope(Scope)
@@ -461,7 +465,7 @@ module CPP-TRANSLATION-NAME
      rule cSet(... candidates: .Map) ~> isTypeDependent(Name(NoNNS(), _), _) => false
 
      rule <k> false ~> argDependentNameLookup(X::CId, Args::StrictList, Types::StrictList, cSet(Y::TypeMap, QX::QualId)) => cSet(Y, QX) ...</k>
-           <env> Env::Map </env>
+           <tr-env> Env::Map </tr-env>
            requires hasSpecialDeclInArgLookup(X, Y, Env)
 
      syntax Bool ::= hasSpecialDeclInArgLookup(CId, TypeMap, Map) [function]
@@ -474,11 +478,11 @@ module CPP-TRANSLATION-NAME
      // associated namespaces
      rule <k> (.K => getFunctionAddressTypes(Args)) 
               ~> false ~> argDependentNameLookup(X::CId, list(Args::List), krlist(Types::List), cSet(... candidates: Y::TypeMap)) ...</k>
-          <env> Env::Map </env>
+          <tr-env> Env::Map </tr-env>
           requires notBool hasSpecialDeclInArgLookup(X, Y, Env)
      rule <k> (.K => getFunctionAddressTypes(Args)) 
               ~> false ~> argDependentNameLookup(X::CId, list(Args::List), krlist(Types::List), notFound(_)) ...</k>
-          <env> Env::Map </env>
+          <tr-env> Env::Map </tr-env>
 
      // if the argument is the name or address of a set of overloaded functions
      // and/or function templates, its associated classes and namespaces are 

@@ -1,7 +1,8 @@
 module CPP-DYNAMIC-SORTS
      syntax LVal
      syntax XVal
-     syntax PRVal
+     syntax PRV
+     syntax PRVal ::= PRV
      syntax GLVal ::= LVal | XVal
      syntax RVal ::= XVal | PRVal
      syntax Val ::= GLVal | RVal
@@ -69,7 +70,7 @@ module CPP-DYNAMIC-SYNTAX
 
      syntax LVal ::= lv(v: SymLoc, tr: Trace, t: CPPTypeExpr) [klabel(lvcpp)]
      syntax XVal ::= xv(v: SymLoc, tr: Trace, t: CPPTypeExpr)
-     syntax PRVal ::= prv(v: CPPValue, tr: Trace, t: CPPTypeExpr)
+     syntax PRV ::= prv(v: CPPValue, tr: Trace, t: CPPTypeExpr)
 
      syntax LExpr ::= le(v: Expr, tr: Trace, t: CPPTypeExpr) [klabel(lecpp)]
      syntax XExpr ::= xe(v: Expr, tr: Trace, t: CPPTypeExpr)
@@ -89,6 +90,9 @@ module CPP-DYNAMIC-SYNTAX
      syntax ValueCategory ::= NoInitValueCategory
      syntax NoInitValueCategory ::= NoInitCat()
 
+     syntax Bool ::= Execution() [function]
+                   | Translation() [function]
+
      syntax Expr ::= stripHold(Expr) [function, klabel(stripHoldCpp)]
 
      syntax Bool ::= isEvalVal(K) [function]
@@ -103,6 +107,7 @@ module CPP-DYNAMIC-SYNTAX
      syntax InitType ::= CopyInit() | DirectInit()
      syntax DeclarationType ::= FunctionDeclarationType | VarDeclarationType
      syntax Decl ::= declareNonStaticObject(id: CId, t: CPPType, init: K, DeclarationType, Duration, Set)
+     syntax Decl ::= declareNonStaticObjectExec(id: CId, t: CPPType, init: K, DeclarationType, Duration, Set)
      syntax Decl ::= declareLocalStaticObject(CId, SymBase, CPPType)
      syntax KItem ::= frozenDeclaration(Int, Int, Decl) [klabel(frozenDeclarationCpp)]
      syntax Expr ::= compoundInit(Expr, Expr) [strict(1)]
@@ -177,6 +182,12 @@ module CPP-DYNAMIC-SYNTAX
 
 
      syntax TemplateInfo ::= "noTemplate"
+
+     syntax KItem ::= "cppSequencePoint"
+     syntax KItem ::= "cppFullExpression"
+     syntax KItem ::= cppEnterRestrictBlock(Scope)
+     syntax KItem ::= cppExitRestrictBlock(Set)
+     syntax KItem ::= cppDeleteObjects(Set)
 
      syntax KItem ::= "pushBlock" "(" Int ")"
                     | "popBlock"
@@ -547,4 +558,13 @@ module CPP-DYNAMIC
      rule cat(xv(...)) => xvalue
      rule cat(xe(...)) => xvalue
 
+     rule pre(E::Expr, _, _) => E
+          requires Execution()
+     rule xe(E::Expr, _, _) => E
+          requires Execution()
+     rule le(E::Expr, _, _) => E
+          requires Execution()
+
+     rule Translation() => notBool Execution()
+     rule hasTrace(ExecName(N::NNS, X::CId) => Name(N,X)) [anywhere]
 endmodule

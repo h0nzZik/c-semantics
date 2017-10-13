@@ -23,6 +23,7 @@ module C-CHECK-LOC
      imports C-ERROR-SYNTAX
      imports C-SYMLOC-SYNTAX
      imports C-TYPING-SYNTAX
+     imports C-CONFIGURATION
 
      syntax RestrictStatus ::= restrictStatus(Scope, Map)
 

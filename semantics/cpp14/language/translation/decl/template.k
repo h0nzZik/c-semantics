@@ -58,14 +58,14 @@ module CPP-DECL-TEMPLATE
      rule getTemplateName(ClassDef(_, X::CId, N::NNS, _, _, _)) => Name(N, X)
 
      rule <k> declareTemplate(Name(NoNNS(), X::CId), D::Decl, Params:K) => templateContext(N :: X, Params, D) ...</k>
-          <curr-scope> namespaceScope(N::Namespace) </curr-scope>
+          <curr-tr-scope> namespaceScope(N::Namespace) </curr-tr-scope>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
 
      syntax KItem ::= setTemplateContext(TemplateInfo)
      rule <k> templateContext(Q::QualId, Params:K, D::Decl) => scope(templateParameterScope, Params ~> setScope(S) ~> elaborate(D) ~> finishTemplate) ~> setTemplateContext(Old) ...</k>
           <curr-template-context> Old::TemplateInfo => templateInfo(Q, .List, .Map, .Map, NoType(), .K) </curr-template-context>
-          <curr-scope> S::Scope </curr-scope>
+          <curr-tr-scope> S::Scope </curr-tr-scope>
 
      syntax KItem ::= "finishTemplate"
      rule <k> elaborateDone(K:K) ~> finishTemplate => .K ...</k>
@@ -161,7 +161,7 @@ module CPP-DECL-TEMPLATE
      rule instantiateTemplate(templateSpecialization(T:CPPFunctionType, I::TemplateInfo, Args::Map)) => instantiateObjectTemplate(templateSpecialization(T, I, Args))
      rule <k> instantiateObjectTemplate(templateSpecialization(T::CPPType, templateInfo(Q::QualId, Decls::List, _, _, _, Body:K), Args:Map)) => scope(templateParameterScope, declareTemplateArgs(Decls, Args, 0) ~> setScope(S) ~> Body) ~> setTemplateArgs(Q, T, Old) ...</k>
           <template-arguments> Old::Map => updateMap(Old, Args) </template-arguments>
-          <curr-scope> S::Scope </curr-scope>
+          <curr-tr-scope> S::Scope </curr-tr-scope>
 
      syntax KItem ::= declareTemplateArgs(List, Map, Int)
      rule (.K => TypedefDecl(Identifier(S), T)) ~> declareTemplateArgs((ListItem(Identifier(S::String)) => .List) _, _ dependentType(S, I) |-> T:CPPType, I::Int => I +Int 1)

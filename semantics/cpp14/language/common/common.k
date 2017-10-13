@@ -1,4 +1,5 @@
 require "alignment.k"
+require "binding.k"
 require "bitsize.k"
 require "builtin.k"
 require "class.k"
@@ -14,12 +15,16 @@ require "symloc.k"
 require "syntax.k"
 require "typing.k"
 
+require "decl/declarator.k"
+
 require "expr/additive.k"
 require "expr/bitwise.k"
 require "expr/cast.k"
+require "expr/conditional.k"
 require "expr/eval.k"
-require "expr/multiplicative.k"
 require "expr/members.k"
+require "expr/multiplicative.k"
+require "expr/name.k"
 require "expr/relational.k"
 require "expr/unary.k"
 
@@ -27,12 +32,19 @@ require "memory/alloc.k"
 require "memory/reading.k"
 require "memory/writing.k"
 
+require "../execution/env.k"
+
 require "stmt/expr.k"
+require "stmt/return.k"
+require "stmt/block.k"
+require "stmt/if.k"
+require "stmt/loop.k"
 
 require "cpp-extensions-common.k"
 
 module CPP-COMMON
      imports CPP-ALIGNMENT
+     imports CPP-BINDING
      imports CPP-BITSIZE
      imports CPP-BUILTIN
      imports CPP-CLASS
@@ -44,6 +56,7 @@ module CPP-COMMON
      imports CPP-REFERENCE
      imports CPP-SYMLOC
      imports C-CPP-TYPING
+     imports CPP-EXEC-ENV
 
      imports CPP-SETTINGS
 
@@ -51,8 +64,8 @@ module CPP-COMMON
      imports CPP-EXPR-BITWISE
      imports CPP-EXPR-CAST
      imports CPP-EXPR-EVAL
-     imports CPP-EXPR-MULTIPLICATIVE
      imports CPP-EXPR-MEMBERS
+     imports CPP-EXPR-MULTIPLICATIVE
      imports CPP-EXPR-RELATIONAL
      imports CPP-EXPR-UNARY
 
@@ -60,7 +73,14 @@ module CPP-COMMON
      imports CPP-MEMORY-READING
      imports CPP-MEMORY-WRITING
 
+     imports CPP-COMMON-DECL-DECLARATOR
+     imports CPP-COMMON-EXPR-CONDITIONAL
+     imports CPP-COMMON-EXPR-NAME
+     imports CPP-COMMON-STMT-BLOCK
      imports CPP-COMMON-STMT-EXPR
+     imports CPP-COMMON-STMT-IF
+     imports CPP-COMMON-STMT-LOOP
+     imports CPP-COMMON-STMT-RETURN
 
      imports CPP-COMMON-EXTENSIONS
      imports CPP-COMMON-IO

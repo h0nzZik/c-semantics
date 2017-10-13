@@ -1,3 +1,4 @@
+require "constant.k"
 require "conversion.k"
 require "elaborator.k"
 require "env.k"
@@ -58,6 +59,11 @@ require "typing/canonicalization.k"
 require "typing/dependent.k"
 require "typing/expr.k"
 
+require "../common/expr/function-call.k"
+require "../../../common/thread_local.k"
+require "../execution/stmt/goto.k"
+
+
 require "cpp-extensions-translation.k"
 
 module CPP-TRANSLATION
@@ -65,6 +71,7 @@ module CPP-TRANSLATION
      imports CPP-ELABORATOR
      imports CPP-ENV
      imports CPP-TRANSLATION-ERROR
+     imports CPP-TRANSLATION-CONSTANT
      imports CPP-TRANSLATION-INIT
      imports CPP-TRANSLATION-IO
      imports CPP-TRANSLATION-NAME
@@ -95,6 +102,7 @@ module CPP-TRANSLATION
      imports CPP-EXPR-CONDITIONAL
      imports CPP-TRANSLATION-EXPR-EVAL
      imports CPP-EXPR-FUNCTION-CALL
+     imports CPP-COMMON-EXPR-FUNCTION-CALL
      imports CPP-EXPR-INC-AND-DEC
      imports CPP-EXPR-LITERAL
      imports CPP-EXPR-LOGICAL

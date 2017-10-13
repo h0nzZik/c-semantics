@@ -20,6 +20,7 @@ module CPP-BINDING
      imports CPP-MEMORY-WRITING-SYNTAX
      imports CPP-SYNTAX
      imports CPP-TYPING-SYNTAX
+     imports COMPAT-SYNTAX
 
      rule <k> (.K => bindParam(X, T, V))
           ~> bind(

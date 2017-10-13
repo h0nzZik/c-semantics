@@ -28,6 +28,7 @@ require "decl/local.k"
 require "decl/typedef.k"
 
 require "c-extensions-execution.k"
+require "../../../common/thread_local.k"
 
 module C-EXECUTION
      imports C-CONFIGURATION

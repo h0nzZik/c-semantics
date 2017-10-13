@@ -10,6 +10,12 @@ module CPP-EXPR-FUNCTION-CALL
      imports CPP-OVERLOADING-SYNTAX
      imports CPP-SYNTAX
      imports CPP-TYPING-SYNTAX
+     imports C-CONFIGURATION
+     imports CPP-COMMON-EXPR-FUNCTION-CALL-SYNTAX
+     imports CPP-TRANSLATION-CONSTANT-SYNTAX
+
+     
+     rule runtimeFunctionApplication(_) => .K
 
      rule CallExpr(Lbl:KLabel(_::K, Tr::Trace, T:CPPFunctionType) #as V::Val, list(A::List), krlist(DArgs::List))
           => elabCall(V, isVirtualCall(Tr, T), A, getReturnType(T), list(bindParams(getParams(T), A, DArgs)))
@@ -18,10 +24,11 @@ module CPP-EXPR-FUNCTION-CALL
      rule CallExpr(_:KLabel(_::K, _::K, t(... st: pointerType(T:CPPFunctionType))) #as V:Val, list(A::List), krlist(DArgs::List))
           => elabCall(V, false, A, getReturnType(T), list(bindParams(getParams(T), A, DArgs)))
 
+     // TODO check whether the arguments are evaluated
      syntax KItem ::= elabCall(Val, Bool, List, CPPType, StrictList) [strict(5)]
      rule elabCall(Fun::Val, IsVirtualCall::Bool, Args::List, T::CPPType, krlist(Temps::List))
           => makeCall(BuiltinCallOp(Fun, IsVirtualCall, Temps), combine(trace(Fun), hasTrace(list(Args)), #klabel(`CallExpr`)), T)
-
+      
      syntax TExpr ::= makeCall(Expr, Trace, CPPType) [function]
      rule makeCall(E::Expr, Tr::Trace, T::CPPType) => le(E, Tr, T)
           requires isUnnamedLValue(T)

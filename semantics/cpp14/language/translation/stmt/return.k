@@ -6,6 +6,10 @@ module CPP-STMT-RETURN
      imports CPP-TYPING-SYNTAX
      imports C-CONFIGURATION
 
+     imports CPP-STMT-RETURN-SYNTAX
+
+     rule runtimeReturn => .K
+
      context ReturnOp(HOLE:Expr) [result(Val)]
 
      rule <k> ReturnStmt(I::Init) => ReturnOp(figureInit(le(temp(!I:Int, Ret), noTrace, Ret), Ret, I, CopyInit())) ...</k>
@@ -22,6 +26,7 @@ module CPP-STMT-RETURN
 
      rule <k> ReturnOp(V:Val) => .K ...</k>
           <elab>... .K => ReturnOp(V) </elab>
+          requires Translation()
 
 endmodule
 

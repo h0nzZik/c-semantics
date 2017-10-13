@@ -158,12 +158,15 @@ module CPP-SYNTAX
                    | Expr "|=" Init [strict(1)]
                    | Expr "<<=" Init [strict(1)]
                    | Expr ">>=" Init [strict(1)]
-                   | ConditionalOp(Expr, Expr, Expr, ValueCategory, CPPType)
+                   | ConditionalOp(cond: Expr, Expr, Expr, ValueCategory, CPPType)
                    | ThrowOp(Expr) [strict]
                    > left:
                      Comma(Expr, Expr) [strict(1)]
      syntax Name ::= Name(NNS, CId)
                    | Name(NNS, CId, List)
+
+     syntax ExecName ::= ExecName(NNS, CId) // TODO rename (localExecName?)
+     syntax Expr ::= ExecName
 
      syntax Expr ::= ConvertType(CPPType, Expr)
                    | ExprLoc
@@ -237,7 +240,5 @@ module CPP-SYNTAX
      // returns the current exception object. Used to initialize
      // catch declarations.
      syntax Expr ::= exceptionObject(CPPType)
-
-     context IfStmt((HOLE:Expr => reval(HOLE)), _, _) [result(PRVal)]
 
 endmodule

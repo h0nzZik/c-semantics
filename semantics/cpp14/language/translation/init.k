@@ -20,10 +20,22 @@ module CPP-TRANSLATION-INIT
      imports CPP-SYMLOC-SYNTAX
      imports CPP-SYNTAX
      imports CPP-TYPING-SYNTAX
+     imports CPP-CONVERSION-SYNTAX
+     imports K-REFLECTION
 
      imports C-CONFIGURATION
 
-     rule isKResult(Lbl:KLabel(_::CPPValue, _::Trace, T::CPPType)) => notBool isCPPRefType(T)
+     rule cppSequencePoint => .K
+     rule cppFullExpression => .K
+     rule cppEnterRestrictBlock(_) => .K
+     rule cppExitRestrictBlock(_) => .K
+     rule cppDeleteObjects(_) => .K
+
+     syntax Bool ::= #Execution(K) [function]
+     rule Execution() => #Execution(#configuration)
+     rule #Execution(<generatedTop>... <evaluating> B::Bool </evaluating> ...</generatedTop>) => B
+
+     rule isKResult(Lbl:KLabel(_::CPPValue, _::Trace, T::CPPType) #as V::Val) => (notBool isCPPRefType(T)) andBool ((notBool Execution()) orBool isEvalVal(V))
           requires isTExprKLabel(#klabel(Lbl))
      rule isKResult(Lbl:KLabel(_::CPPValue, _::Trace, _:KItem, T:CPPTypeExpr)) => isDependentInScope(T)
           requires isDepKLabel(#klabel(Lbl))
@@ -155,26 +167,33 @@ module CPP-TRANSLATION-INIT
 
      rule <k> L:CabsLoc => .K ...</k>
           <elab>... .K => L </elab>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
 
      rule <k> ExprLoc(L::CabsLoc, E::Expr) => #ExprLoc(L, E) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
 
      syntax Expr ::= #ExprLoc(CabsLoc, Expr) [strict(2)]
      rule <k> #ExprLoc(L::CabsLoc, V:Val) => V ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
-          requires isEvalVal(V)
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc> // or curr-expr-program-loc? I am not completely sure...
+          requires isEvalVal(V) orBool Execution()
+
      rule <k> #ExprLoc(L::CabsLoc, V:PRExpr) => pre(ExprLoc(L, stripHold(V)), trace(V), type(V)) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
+          requires Translation()
      rule <k> #ExprLoc(L::CabsLoc, V:XExpr) => xe(ExprLoc(L, stripHold(V)), trace(V), type(V)) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
+          requires Translation()
      rule <k> #ExprLoc(L::CabsLoc, V:LExpr) => le(ExprLoc(L, stripHold(V)), trace(V), type(V)) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
+          requires Translation()
      rule <k> #ExprLoc(L::CabsLoc, V:PRDep) => prd(ExprLoc(L, stripHold(V)), trace(V), type(V), param(V)) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
+          requires Translation()
      rule <k> #ExprLoc(L::CabsLoc, V:XDep) => xd(ExprLoc(L, stripHold(V)), trace(V), type(V), param(V)) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
+          requires Translation()
      rule <k> #ExprLoc(L::CabsLoc, V:LDep) => ld(ExprLoc(L, stripHold(V)), trace(V), type(V), param(V)) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
+          requires Translation()
      
 endmodule

@@ -24,6 +24,7 @@ module CPP-DECL-DECLARATOR-SYNTAX
 endmodule
 
 module CPP-DECL-DECLARATOR
+     imports CPP-COMMON-DECL-DECLARATOR-SYNTAX
      imports CPP-DECL-DECLARATOR-SYNTAX
      imports C-CONFIGURATION
      imports K-REFLECTION
@@ -45,6 +46,20 @@ module CPP-DECL-DECLARATOR
      imports CPP-TYPING-EXPR-SYNTAX
      imports CPP-TYPING-SYNTAX
      imports CPP-VALUE-CATEGORY-SYNTAX
+     imports CPP-TRANSLATION-CONSTANT-SYNTAX
+
+     // TODO try ExpressionStmt
+     // TODO(h0nzZik) I have no idea why ExpressionStmt does not work there
+     // It still does not work with the strictness
+     rule <k> possiblyInitializeObject(Init::Expr) => allowInit(MyExprStmt(Init) /*ExpressionStmt(Init)*/) ...</k>
+          requires Execution()
+
+     syntax KItem ::= MyExprStmt(Expr) //[strict]
+     rule MyExprStmt(E::Expr) => E ~> MyExprStmt2
+     syntax KItem ::= "MyExprStmt2"
+     rule V:Val ~> MyExprStmt2 => .K
+          requires isEvalVal(V)
+
 
      rule FunctionDecl(N::NNSVal, X::CId, T::CPPFunctionType, Params::List) => NormalizedDecl(N, X, T, NoInit(), Function(Params)) [anywhere]
      rule VarDecl(N::NNSVal, X::CId, T::CPPType, Init::Expr, IsDirect:Bool) => NormalizedDecl(N, X, T, Init, Var(#if IsDirect #then DirectInit() #else CopyInit() #fi)) [anywhere]
@@ -65,11 +80,11 @@ module CPP-DECL-DECLARATOR
              [result(NNSVal)]
 
      rule <k> DeclaratorAndSpecifiers(NormalizedDecl((NoNNS() => N), _, _, _, _), _) ...</k>
-          <curr-scope> namespaceScope(N::Namespace) </curr-scope>
+          <curr-tr-scope> namespaceScope(N::Namespace) </curr-tr-scope>
      rule <k> DeclaratorAndSpecifiers(NormalizedDecl((NoNNS() => NoNamespace()), _, _, _, _), _) ...</k>
-          <curr-scope> _:BlockScope </curr-scope> 
+          <curr-tr-scope> _:BlockScope </curr-tr-scope> 
      rule <k> DeclaratorAndSpecifiers(NormalizedDecl((NoNNS() => C), _, _, _, _), _) ...</k>
-          <curr-scope> classScope(C::Class, _) </curr-scope>
+          <curr-tr-scope> classScope(C::Class, _) </curr-tr-scope>
 
      context DeclaratorAndSpecifiers(NormalizedDecl(_, _, HOLE:AType, _, _), _) [result(CPPTypeExpr)]
      context DeclaratorAndSpecifiers(NormalizedDecl(_, _, HOLE:CPPTypeExpr, _, _), _)
@@ -78,7 +93,7 @@ module CPP-DECL-DECLARATOR
      rule <k> DeclaratorAndSpecifiers(NormalizedDecl(N:NNSVal, X::CId, t(Q::Quals, _, _) #as T::CPPType, Body::Init, Type::DeclarationType), S::Set) => declareObject(N, getInnermostNamespace(N, Scope), X, T, Body, Type, getLinkage(S, N, Scope, Q, getPreviousLinkage(getInnermostNamespace(N, Scope) :: X, T, Exts, Ints), Type), getDuration(S, Scope), S) ...</k>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
-          <curr-scope> Scope::Scope </curr-scope>
+          <curr-tr-scope> Scope::Scope </curr-tr-scope>
           <externals> Exts:Map </externals>
           <internals> Ints:Map </internals>
           <curr-extern> IsExtern:Bool </curr-extern>
@@ -165,6 +180,7 @@ module CPP-DECL-DECLARATOR
      // ExternalLinkage, StaticStorage, not previously declared
      rule <k> declareObject(N:Namespace, LN::Namespace, X::CId, T:CPPType, Init::Init, Type::DeclarationType, ExternalLinkage, StaticStorage, S::Set)
               => addToEnv(N :: X, T, bnew(!I:Int, T, S, link(Tu)), false)
+              ~> markAsConstexpr(bnew(!I, T, S, link(Tu)), S)
               ~> updateDefaultArguments(N :: X, T, computeDefaultArgs(T, Type))
               ~> defineObject(N, X, T, Init, Type, StaticStorage, S) ...</k>
           <curr-tu> Tu::String </curr-tu>
@@ -182,6 +198,7 @@ module CPP-DECL-DECLARATOR
      // InternalLinkage, StaticStorage, not previously declared
      rule <k> declareObject(N:Namespace, LN::Namespace, X::CId, T:CPPType, Init::Init, Type::DeclarationType, InternalLinkage, StaticStorage, S::Set)
               => addToEnv(N :: X, T, bnew(!I:Int, T, S, link(Tu)), false)
+              ~> markAsConstexpr(bnew(!I, T, S, link(Tu)), S)
               ~> updateDefaultArguments(N :: X, T, computeDefaultArgs(T, Type))
               ~> defineObject(N, X, T, Init, Type, StaticStorage, S) ...</k>
           <curr-tu> Tu::String </curr-tu>
@@ -193,7 +210,7 @@ module CPP-DECL-DECLARATOR
           <odr-decls> Decls::Map => Decls[bnew(!I, T, S, link(Tu)) += ktriple(Tu, LN :: X, T)] </odr-decls>
           <external-types> ET::Map => addOdrDecl(ET, X, T) </external-types>
           <curr-template-context> noTemplate </curr-template-context>
-          <curr-scope> Scope::Scope </curr-scope>
+          <curr-tr-scope> Scope::Scope </curr-tr-scope>
           requires notBool LN :: X, T in_keys(Ints)
                andBool completeDeclaration(T, Init) ==K T
 
@@ -216,7 +233,7 @@ module CPP-DECL-DECLARATOR
           <odr-decls> Decls::Map => Decls[Base += ktriple(Tu, LN :: X, T)] </odr-decls>
           <external-types> ET::Map => addOdrDecl(ET, X, T) </external-types>
           <curr-template-context> noTemplate </curr-template-context>
-          <curr-scope> Scope::Scope </curr-scope>
+          <curr-tr-scope> Scope::Scope </curr-tr-scope>
           <elab>... .K => #if isBlockScope(Scope) #then declareLocalStaticObject(X, Base, T) #else .K #fi </elab>
           requires completeDeclaration(T, Init) ==K T
 
@@ -231,27 +248,43 @@ module CPP-DECL-DECLARATOR
           <odr-decls> Decls::Map => Decls[Base += ktriple(Tu, LN :: X, T)] </odr-decls>
           <external-types> ET::Map => addOdrDecl(ET, X, T) </external-types>
           <curr-template-context> noTemplate </curr-template-context>
-          <curr-scope> Scope::Scope </curr-scope>
+          <curr-tr-scope> Scope::Scope </curr-tr-scope>
           <elab>... .K => #if isBlockScope(Scope) #then declareLocalStaticObject(X, Base, T) #else .K #fi </elab>
           requires completeDeclaration(T, Init) ==K T
 
      context declareNonStaticObject(... init: HOLE:Expr)
 
+     // We should evaluate the initializer as soon as possible.
+     // But wow can we handle the situation when the initializer refers to the initialized variable?
+
      // NoLinkage, AutoStorage, not previously declared
      rule <k> declareObject(NoNamespace(), _, X::CId, T::CPPType, Init::Init, Var(Type::InitType), NoLinkage, AutoStorage, S::Set) ~> Next:KItem
               => addToEnv(NoNamespace() :: X, T, nonStatic, false)
-              ~> declareNonStaticObject(X, T, figureInit(le(Name(NoNNS(), X), hasTrace(Name(NoNNS(), X)), T), T, Init, Type), Var(Type), AutoStorage, S)
+              ~> prepareDeclareNonStaticObject(X, T, Init, Type, S)
               ~> Next
           ...</k>
-          <curr-scope> _:BlockScope </curr-scope>
+          <curr-tr-scope> _:BlockScope </curr-tr-scope>
           <curr-template-context> noTemplate </curr-template-context>
           requires completeDeclaration(T, Init) ==K T
                andBool getKLabel(Next) =/=K #klabel(`dummyBind`)
 
+     syntax KItem ::= prepareDeclareNonStaticObject(CId, CPPType, init: Init, InitType, s: Set)
+
+     context prepareDeclareNonStaticObject(...init: HOLE:Expr => evalConstantExpression(HOLE), s: S::Set)
+          requires Constexpr() in S
+
+     rule prepareDeclareNonStaticObject(X::CId, T::CPPType, Init::Init, Type::InitType, S::Set)
+          => declareNonStaticObject(X, T, figureInit(le(ExecName(NoNNS(), X), hasTrace(Name(NoNNS(), X)), T), T, Init, Type), Var(Type), AutoStorage, S)
+
+    syntax Init ::= stripExprLoc(Init) [function]
+     rule stripExprLoc(ExprLoc(_, E::Init)) => stripExprLoc(E)
+     rule stripExprLoc(E::Init) => E
+          requires notBool isExprLoc(E)
+
      // NoLinkage, StaticStorage, not previously declared
      rule <k> declareObject(NoNamespace(), _, X::CId, T::CPPType, Init::Init, Type::DeclarationType, NoLinkage, StaticStorage, Set::Set)
               => defineLocalStaticObject(X, bnew(!I:Int, T, Set, static(Tu)), T, Init, Type, Set) ...</k>
-          <curr-scope> S::Scope </curr-scope>
+          <curr-tr-scope> S::Scope </curr-tr-scope>
           <curr-template-context> noTemplate </curr-template-context>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
@@ -267,7 +300,7 @@ module CPP-DECL-DECLARATOR
      rule <k> declareObject(C:Class, C, X::CId, T:CPPType, NoInit(), Var(_), ExternalLinkage, StaticStorage, S::Set)
               => addToEnv(C :: X, T, bnew(!I:Int, T, S, link(Tu)), false)
           ...</k>
-          <curr-scope> classScope(C, _) </curr-scope>
+          <curr-tr-scope> classScope(C, _) </curr-tr-scope>
           <class-id> C </class-id>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
@@ -280,12 +313,13 @@ module CPP-DECL-DECLARATOR
      // Declare function member inside class
      rule <k> declareObject(C:Class, C, X::CId, T:CPPFunctionType, Init::Init, Type::DeclarationType, ExternalLinkage, StaticStorage, S::Set)
               => addToEnv(C :: X, T, bnew(!I, T, S, link(Tu)), false)
+              ~> markAsConstexpr(bnew(!I, T, S, static(Tu)), S)
               ~> defineObject(C, X, T, Init, Type, StaticStorage, S)
           ...</k>
           // pure functions need to have a dummy functionObject in order for virtual call semantics to know their QualId if they have no definition
           <functions> Funcs::Map => #if isMethodPure(T) #then Funcs bnew(!I, T, S, link(Tu)) |-> functionObject(C :: X, T, .List, .K) #else Funcs #fi </functions>
           <deferred-class-actions> _ |> _ |> (K:K => updateDefaultArguments(C :: X, T, computeDefaultArgs(T, Type)) ~> K) |> .Ordering </deferred-class-actions>
-          <curr-scope> classScope(C, _) </curr-scope>
+          <curr-tr-scope> classScope(C, _) </curr-tr-scope>
           <class-id> C </class-id>
           <function-members>... .List => ListItem(kpair(X, T)) </function-members>
           <curr-tu> Tu::String </curr-tu>
@@ -319,8 +353,13 @@ module CPP-DECL-DECLARATOR
      rule <k> stripAuto => .K ...</k>
           <template-arguments>... auto |-> _ => .Map ...</template-arguments>
 
-     rule <k> declareNonStaticObject(... init: Init:KResult) #as D:KItem => .K ...</k>
-          <elab>... .K => D </elab>
+     rule declareNonStaticObject(ID::CId, T::CPPType, Init:KResult, DT::DeclarationType, DU::Duration, S::Set)
+          =>  declareNonStaticObject2(declareNonStaticObjectExec(ID, T, Init, DT, DU, S), Constexpr() in S)
+
+     syntax KItem ::= declareNonStaticObject2(K, Bool)
+     rule <k> declareNonStaticObject2(K::K, ConstExpr:Bool) =>
+              #if ConstExpr #then compileTimeEval(K) #else .K #fi ... </k>
+          <elab>... .K => K </elab>
 
      syntax CPPType ::= completeDeclaration(CPPType, Init) [function]
      rule completeDeclaration(T::CPPType, (ExprLoc(_, I::Init) => I))
@@ -409,6 +448,9 @@ module CPP-DECL-DECLARATOR
 
      syntax Expr ::= allocateDecl(QualId, CPPType, Duration, Set, DeclarationType)
 
+     rule possiblyMarkAsConstexpr(B::SymBase, S::Set) => markAsConstexpr(B, S)
+
+     // Constexpr: fixme what if it is a constexpr reference? Will it work?
      rule <k> allocateDecl(N:Namespace :: X::CId, T::CPPType, StaticStorage, S::Set, Type::DeclarationType)
               => addToEnv(N :: X, T, bnew(!I:Int, T, S, static(Tu)), false)
               ~> #if notBool isCPPRefType(T) #then allocObject(bnew(!I, T, S, static(Tu)), T, byteSizeofType(T)) #else .K #fi
@@ -446,13 +488,13 @@ module CPP-DECL-DECLARATOR
      rule <k> initializeObject(N::NNSVal, X::CId, T::CPPFunctionType, functionDef(Base::SymBase, Body::Stmt), Function(Params::List))
               => initFunction(Base, functionObject(N :: X, T, .List, GotoStmt(funLabel(X))))
               ~> processFunDef(Base, N :: X, T, Params, Body) ...</k>
-          <curr-scope> S::Scope </curr-scope>
+          <curr-tr-scope> S::Scope </curr-tr-scope>
           requires notBool isClassScope(S)
 
      rule <k> initializeObject(N::NNSVal, X::CId, T::CPPFunctionType, functionDef(Base::SymBase, Body::Stmt), Function(Params::List))
               => initFunction(Base, functionObject(N :: X, T, .List, GotoStmt(funLabel(X)))) ...</k>
           <deferred-class-actions> _ |> _ |> (K:K => K ~> processFunDef(Base, N :: X, T, Params, Body)) |> .Ordering </deferred-class-actions>
-          <curr-scope> classScope(...) </curr-scope>
+          <curr-tr-scope> classScope(...) </curr-tr-scope>
 
      syntax KItem ::= initFunction(SymBase, K)
 
@@ -461,7 +503,7 @@ module CPP-DECL-DECLARATOR
 
      rule <k> processFunDef(Base::SymBase, QX::QualId, t(... st: functionType(... methodInfo: MI::MethodInfo)) #as T::CPPFunctionTypeExpr, Params::List, Body::Stmt)
               => scope(blockScope(QX, Base, 0),
-                   elaborateTemplateBody(dummyBind(Params) ~> #if hasThis(MI) #then setThis(QX, MI) #else .K #fi ~> getFunDefBody(I, QX, T, Body))
+                   elaborateTemplateBody(dummyBind(Params) ~> #if hasThis(MI) #then setTrThis(QX, MI) #else .K #fi ~> getFunDefBody(I, QX, T, Body))
                    ~> calculateGotoMap)
           ...</k>
           <curr-function> _ => Base </curr-function>
@@ -475,9 +517,9 @@ module CPP-DECL-DECLARATOR
      syntax Bool ::= hasThis(MethodInfo) [function]
      rule hasThis(methodInfo(... static: false)) => true
      rule hasThis(_) => false [owise]
-     syntax KItem ::= setThis(QualId, MethodInfo)
-     rule <k> setThis(C:Class :: _, methodInfo(... cvQuals: Q::Quals)) => .K ...</k>
-          <this> _ => pre(This(), hasTrace(This()), type(pointerType(t(Q::Quals, .Set, classType(C))))) </this>
+     syntax KItem ::= setTrThis(QualId, MethodInfo)
+     rule <k> setTrThis(C:Class :: _, methodInfo(... cvQuals: Q::Quals)) => .K ...</k>
+          <tr-this> _ => pre(This(), hasTrace(This()), type(pointerType(t(Q::Quals, .Set, classType(C))))) </tr-this>
 
      syntax Expr ::= getDefaultReturnOp(QualId, CPPTypeExpr) [function]
      rule getDefaultReturnOp(GlobalNamespace() :: Identifier("main"), T::CPPTypeExpr)

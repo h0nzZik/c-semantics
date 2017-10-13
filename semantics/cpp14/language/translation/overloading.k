@@ -29,6 +29,7 @@ module CPP-OVERLOADING
      imports COLLECTIONS
      imports INT
      imports K-EQUAL
+     imports BASIC-K
      imports STRING
      imports COMPAT-SYNTAX
      imports C-LINKING-RESOLUTION-SYNTAX
@@ -75,7 +76,7 @@ module CPP-OVERLOADING
                    list(getArgs(Args, Q, E, Obj)),
                    E, O)
           ...</k>
-          <this> Obj:K </this>
+          <tr-this> Obj:K </tr-this>
 
      syntax Expr ::= #resolveOverload(cands: CandidateSet, args: StrictList, types: StrictList, cats: StrictList, trace: Expr, ot: OverloadType)
      syntax List ::= getArgs(List, QualId, Expr, K) [function]
@@ -336,14 +337,18 @@ module CPP-OVERLOADING
           requires isCLinkage(T)
      rule addOdrUse(EU::Map, _, _, _) => EU [owise]
 
+     syntax Bool ::= isNonStaticBase(SymBase) [function]
+     rule isNonStaticBase(nonStatic) => true
+     rule isNonStaticBase(_) => false [owise]
+
      // do not actually perform overload resolution, this was a function call
      // in which the postfix expression was a function pointer
      rule <k> #resolveOverload(cSet(... candidates: T:CPPPointerType |-> envEntry(... base: Base::SymBase), id: X::QualId), list(Args::List), _, _, E::Expr, _)
               => checkAccess(CallExpr(lv(lnew(Base), hasTrace(E), T), list(Args), krlist(getDefaultArgsVals(emptyDefaultArguments(innerType(T)))))) ...</k>
           <odr-uses>... .Set => SetItem(Base) ...</odr-uses>
           <external-uses> EU::Map => addOdrUse(EU, X, T, L) </external-uses>
-          <curr-program-loc> L::CabsLoc </curr-program-loc>
-          requires isCPPFunctionType(innerType(T)) andBool Base =/=K nonStatic
+          <curr-tr-program-loc> L::CabsLoc </curr-tr-program-loc>
+          requires isCPPFunctionType(innerType(T)) andBool notBool isNonStaticBase(Base)
      rule #resolveOverload(cSet(... candidates: T:CPPPointerType |-> envEntry(... base: nonStatic)), list(Args::List), _, _, E::Expr, _)
           => checkAccess(CallExpr(le(E, hasTrace(E), T), list(Args), krlist(getDefaultArgsVals(emptyDefaultArguments(innerType(T))))))
           requires isCPPFunctionType(innerType(T))
@@ -353,7 +358,7 @@ module CPP-OVERLOADING
               => checkAccess(CallExpr(lv(lnew(Base), hasTrace(E), T), list(Args), DArgs)) ...</k>
           <odr-uses>... .Set => #if isMethodPure(T) andBool isVirtualCall(hasTrace(E), T) #then .Set #else SetItem(Base) #fi ...</odr-uses>
           <external-uses> EU::Map => addOdrUse(EU, X, T, L) </external-uses>
-          <curr-program-loc> L::CabsLoc </curr-program-loc>
+          <curr-tr-program-loc> L::CabsLoc </curr-tr-program-loc>
 
      rule bestViable(T::CPPFunctionType, builtinOp(E::Expr)) ~> #resolveOverload(...) => E
 
@@ -643,11 +648,12 @@ module CPP-OVERLOADING
      rule <k> resolveUniqueDecl(cSet(... candidates: T::CPPType |-> envEntry(... base: Base::SymBase), id: X::QualId), E::Expr, _) => lv(lnew(Base), hasTrace(E), T) ...</k>
           <odr-uses>... .Set => SetItem(Base) ...</odr-uses>
           <external-uses> EU::Map => addOdrUse(EU, X, T, L) </external-uses>
-          <curr-program-loc> L::CabsLoc </curr-program-loc>
-          requires Base =/=K nonStatic
+          <curr-tr-program-loc> L::CabsLoc </curr-tr-program-loc>
+          requires notBool isNonStaticBase(Base)
            andBool notBool isCPPRefType(T)
            andBool notBool isMemberBase(Base)
      rule resolveUniqueDecl(cSet(... candidates: T::CPPType |-> envEntry(... base: nonStatic)), E::Expr, _) => le(E, hasTrace(E), T)
+
      // resolve anonymous union member lookup
      rule resolveUniqueDecl(cSet(... candidates: _ |-> envEntry(... base: memberBase(unnamedObject(C::Class), X::CId, _))), _, _) => Name(NoNNS(), unnamedObject(C)) . no-template Name(NoNNS(), X)
 

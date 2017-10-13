@@ -23,7 +23,7 @@ module CPP-TRANSLATION-IO
      rule <k> instantiate(loc(B::SymBase, _) #as Loc::SymLoc, Tr::Trace, T::CPPType)
           => pre(instantiate(Loc, Tr, T), Tr, prvalType(T)) ... </k>
           <constexpr-symbase> CS::Set</constexpr-symbase>
-          requires notBool B in CS
+          requires Translation() andBool notBool B in CS
 
      rule <k> instantiate(loc(B::SymBase, _) #as Loc::SymLoc, Tr::Trace, T::CPPType)
           => read(Loc, Tr, T) ... </k>

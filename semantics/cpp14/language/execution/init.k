@@ -8,12 +8,20 @@ module CPP-EXECUTION-INIT
      imports CPP-SYNTAX
      imports CPP-TYPE-MAP-SYNTAX
      imports CPP-TYPING-SYNTAX
+     imports C-CHECK-LOC-SYNTAX
+     imports C-IO-BUFFERED-SYNTAX
+     imports C-SEQUENCE-POINT-SYNTAX
+
 
      imports LIBC-IO-SYNTAX
 
-     rule pre(E::Expr, _, _) => E
-     rule xe(E::Expr, _, _) => E
-     rule le(E::Expr, _, _) => E
+     rule cppSequencePoint => sequencePoint
+     rule cppFullExpression => fullExpression
+     rule cppEnterRestrictBlock(S::Scope) => enterRestrictBlock(S)
+     rule cppExitRestrictBlock(S::Set) => exitRestrictBlock(S)
+     rule cppDeleteObjects(S::Set) => deleteObjects(S)
+
+     rule Execution() => true
 
      rule <k> callMain(N:Int, Args:K)
                => enterRestrictTU ~> K ~> reval(#callMain(T, getBase(Entry), N, mainArguments, Args)) ~> callAtExit
@@ -31,7 +39,7 @@ module CPP-EXECUTION-INIT
           => BuiltinCallOp(lv(lnew(Base), noTrace, T), false, .List)
           requires getParams(T) ==K .List
      rule #callMain(T::CPPFunctionType, Base::SymBase, Argc:Int, X:CId, Args:K)
-          => Args ~> setupCppEnv(Argc) ~> BuiltinCallOp(lv(lnew(Base), noTrace, T), false, ListItem(prv(Argc, noTrace, type(int))) ListItem(Name(NoNNS(), X)))
+          => Args ~> setupCppEnv(Argc) ~> BuiltinCallOp(lv(lnew(Base), noTrace, T), false, ListItem(prv(Argc, noTrace, type(int))) ListItem(ExecName(NoNNS(), X)))
           requires size(getParams(T)) ==Int 2
 
      syntax KItem ::= setupCppEnv(Int)

@@ -48,7 +48,7 @@ module CPP-STMT-TRY
      rule exceptionObject(T::CPPType) => le(exceptionObject(T), noTrace, T)
 
      rule <k> CatchStmt(DeclLoc(Loc::CabsLoc, D::Decl) => D, _) ...</k>
-          <curr-program-loc> _ => Loc </curr-program-loc>
+          <curr-tr-program-loc> _ => Loc </curr-tr-program-loc>
      context CatchStmt(NormalizedDecl(... type: HOLE:AType), _)
      context CatchStmt(DeclaratorAndSpecifiers(NormalizedDecl(... type: HOLE:AType), _), _)
      rule (.K => elaborate(BlockStmt(I, ListItem(processCatchDecl(D)) L))) ~> CatchStmt(NormalizedDecl(... type: _:CPPType) #as D::Decl, BlockStmt(I::Int, L::List))

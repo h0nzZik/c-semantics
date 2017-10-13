@@ -63,7 +63,7 @@ module CPP-DECL-INITIALIZER
      context #figureInit(... srcCat: HOLE:CatExpr => catof(HOLE)) [result(ValueCategory)]
 
      rule <k> #figureInit(... init: ExprLoc(L::CabsLoc, I::Init) => I) ...</k>
-          <curr-program-loc> _ => L </curr-program-loc>
+          <curr-tr-program-loc> _ => L </curr-tr-program-loc>
 
 
 
