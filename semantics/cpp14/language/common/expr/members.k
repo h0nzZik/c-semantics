@@ -32,18 +32,18 @@ module CPP-EXPR-MEMBERS
            => fieldExp(V, addQuals(getQuals(type(V)), T), Offset +Int PrevOffset)
           ...</k>
           <class-id> FC </class-id>
-          <cenv>... F |-> (T::CPPType |-> classOffset(Offset::Int)) ...</cenv>
+          <cenv>... F |-> (T::CPPType |-> classOffset(_, Offset::Int)) ...</cenv>
           requires type(simpleType(TC)) ==Type type(classType(FC))
 
      rule <k> lookupFieldCPP(V::Val, t(... st: classType(DC::Class => BC)), Name(BC::Class, _), PrevOffset::Int => PrevOffset +Int Offset)
           ...</k>
           <class-id> DC </class-id>
-          <cenv>... baseClass(BC)  |-> (_ |-> classOffset(Offset::Int)) ...</cenv>
+          <cenv>... baseClass(BC)  |-> (_ |-> classOffset(_, Offset::Int)) ...</cenv>
           requires isBaseClassOf(BC, DC)
 
      rule <k> lookupFieldCPP(V::Val, _, Name(FC::Class => C, F::CId), PrevOffset::Int => PrevOffset +Int Offset) ...</k>
           <class-id> FC </class-id>
-          <cenv>... F |-> (_::CPPType |-> envEntry(... base: memberBase(unnamedObject(C::Class), _, _))) unnamedObject(C) |-> (_::CPPType |-> classOffset(Offset::Int)) ...</cenv>
+          <cenv>... F |-> (_::CPPType |-> envEntry(... base: memberBase(unnamedObject(C::Class), _, _))) unnamedObject(C) |-> (_::CPPType |-> classOffset(_, Offset::Int)) ...</cenv>
 
      rule fieldExp(lv(Loc:SymLoc, _, _), T::CPPType, Offset::Int)
           => lv(Loc +bytes Offset /Int cfg:bitsPerByte, noTrace, T)
