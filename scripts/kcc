@@ -994,6 +994,11 @@ sub getKRunCommand {
   @krun_args = add_arg("OPTIONS", $opts, 'text', @krun_args);
   @krun_args = add_arg("JSON", $json, 'text', @krun_args);
 
+  if (defined $ENV{DEPTH}) {
+	  push(@krun_args, "--depth");
+ 	  push(@krun_args, $ENV{DEPTH});
+  }
+
   if (scalar @objs) {
     my $allObjsFile = tempFile();
     my @catArgs = ();
