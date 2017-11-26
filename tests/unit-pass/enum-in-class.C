@@ -26,8 +26,8 @@ int main() {
 	assert((int)e1 == 5);
 
 	// This does not work yet
-	//C::Enum e2 = C::Enum::b;
-	//assert((int)e2 == 10);
+	C::Enum e2 = C::Enum::b;
+	assert((int)e2 == 10);
 
 	C::foo();
 }
