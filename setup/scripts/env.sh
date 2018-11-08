@@ -1,7 +1,7 @@
 #!/bin/bash
 # Prepares environment for K and c-semantics
 
-source settings.sh
+source ~/scripts/settings.sh
 
 eval `opam config env`
 

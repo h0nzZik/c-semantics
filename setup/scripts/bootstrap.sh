@@ -2,8 +2,17 @@
 
 set -e
 
-source ~/settings.sh
-source ~/platform.sh
+SCRIPTS="$HOME/scripts"
+
+source /etc/os-release
+case $ID in
+	fedora )
+		source "$SCRIPTS/platforms/fedora.sh" ;;
+	ubuntu )
+		source "$SCRIPTS/platforms/ubuntu.sh" ;;
+esac
+
+source "$SCRIPTS/settings.sh"
 
 function update_system() {
 	echo "== Updating system"
@@ -101,7 +110,7 @@ function grab_c_semantics() {
 }
 
 function build_c_semantics() {
-	source "$HOME/env.sh"
+	source "$SCRIPTS/env.sh"
 	cd "$HOME/c-semantics"
 	pushd clang-tools
 		cmake -DCMAKE_CXX_FLAGS="-fno-rtti" -DLLVM_PATH="$CLANG_PATH" .

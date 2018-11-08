@@ -8,9 +8,6 @@
 
 # Where to put dependencies
 SW_DIR="$HOME/sw"
-K_PATH="$SW_DIR/k"
-CLANG_PATH="$SW_DIR/clang-$CLANG_VERSION"
-
 
 ################
 # Clang settings
@@ -18,22 +15,22 @@ CLANG_PATH="$SW_DIR/clang-$CLANG_VERSION"
 
 CLANG_VERSION="3.9.1"
 
+# Where to put Clang
+CLANG_PATH="$SW_DIR/clang-$CLANG_VERSION"
+
 #############
 # K Framework
 #############
 
-# When the support for opam-2 gets merged,
-# we will use the master branch of the official
-# repository
-# K_REPO="https://github.com/kframework/k.git"
-# K_BRANCH="master"
-# Until than we have to use the patched version:
-K_REPO="https://github.com/h0nzZik/k5.git"
-K_BRANCH="both-opam-1-2-workaround"
+# The official repository
+K_REPO="https://github.com/kframework/k.git"
+K_BRANCH="master"
+
+# Where to put K
+K_PATH="$SW_DIR/k"
 
 # This should stay the same
 K_BIN="$SW_DIR/k/k-distribution/bin"
-
 
 #################
 # C/C++ semantics
