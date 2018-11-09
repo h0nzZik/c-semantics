@@ -3,7 +3,7 @@
 
 Build with:
 ```bash
-docker build -t h0nzzik/k-framework -f ./docker/k/Dockerfile
+docker build -t h0nzzik/kframework-fedora -f ./docker/k-fedora/Dockerfile .
 ```
 
 Run with:
@@ -24,5 +24,6 @@ Once installed, load `env.sh` to add K to your path.
 ```bash
 source ~/env.sh
 ```
+
 
 
