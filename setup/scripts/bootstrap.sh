@@ -2,7 +2,11 @@
 
 set -e
 
-SCRIPTS="$HOME/scripts"
+# Variable SCRIPTS may be set from Docker
+
+if [[ -z "$SCRIPTS" ]]; then
+	SCRIPTS="$APP_ROOT/scripts"
+fi
 
 source /etc/os-release
 case $ID in
@@ -20,8 +24,14 @@ function update_system() {
 
 }
 
+function install_basic_packages() {
+	echo "== Installing basic packages"
+	platform_install_basic_packages
+}
+
 function prepare_basics() {
 	update_system
+	install_basic_packages
 	mkdir -p $SW_DIR
 }
 
@@ -30,25 +40,6 @@ function install_k_dependencies() {
 	platform_install_k_dependencies
 }
 
-function grab_k() {
-	cd $SW_DIR
-	if [[ ! -d "$K_PATH" ]]; then
-		echo "Cloning K"
-		git clone "$K_REPO" "$K_PATH"
-	fi
-	cd "$K_PATH"
-	git pull
-	git checkout "$K_BRANCH"
-
-}
-
-function install_k() {
-	install_k_dependencies
-	grab_k
-
-	mvn package -Dmaven.test.skip=true
-	cd
-}
 
 function install_ocaml() {
 	echo "Installing OCaml"
@@ -98,20 +89,22 @@ function install_c_semantics_dependencies() {
 	install_cgmemtime
 }
 
+C_SEMANTICS_DIR="$APP_ROOT/c-semantics"
+
 function grab_c_semantics() {
 
-	if [[ ! -d "$HOME/c-semantics" ]]; then
+	if [[ ! -d "$C_SEMANTICS_DIR" ]]; then
 		echo "Cloning c-semantics"
-		git clone "$C_SEMANTICS_REPO" "$HOME/c-semantics"
+		git clone "$C_SEMANTICS_REPO" "$C_SEMANTICS_DIR"
 	fi
-	pushd "$HOME/c-semantics"
+	pushd "$C_SEMANTICS_DIR"
 	git checkout "$C_SEMANTICS_BRANCH"
 	popd
 }
 
 function build_c_semantics() {
 	source "$SCRIPTS/env.sh"
-	cd "$HOME/c-semantics"
+	cd "$C_SEMANTICS_DIR"
 	pushd clang-tools
 		cmake -DCMAKE_CXX_FLAGS="-fno-rtti" -DLLVM_PATH="$CLANG_PATH" .
 	popd
@@ -120,14 +113,14 @@ function build_c_semantics() {
 
 function main() {
 	prepare_basics
-	install_k
+	"$SCRIPTS/install_k.sh"
 	install_ocaml
 	install_c_semantics_dependencies
 	grab_c_semantics
 	build_c_semantics
 }
 
-LOGFILE="$HOME/log.txt"
+LOGFILE="$APP_ROOT/log.txt"
 
 function log() {
   "$@" 2>&1 | tee -a "$LOGFILE"

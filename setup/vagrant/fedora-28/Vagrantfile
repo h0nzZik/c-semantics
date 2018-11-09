@@ -72,5 +72,10 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell do |shell|
     shell.inline = "bash ~/scripts/bootstrap.sh"
     shell.privileged = false
+    shell.env = {
+	"APP_ROOT" => "/home/vagrant"
+	"SCRIPTS" => "/home/vagrant/scripts"
+	"SETTINGS" => "/home/vagrant/scripts/settings.sh"
+    }
   end
 end

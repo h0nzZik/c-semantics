@@ -1,7 +1,7 @@
 #!/bin/bash
-# Prepares environment for K and c-semantics
+# Prepares environment for K and ocaml-backend
 
-source ~/scripts/settings.sh
+source "$SETTINGS"
 
 eval `opam config env`
 

@@ -7,7 +7,7 @@
 #################
 
 # Where to put dependencies
-SW_DIR="$HOME/sw"
+SW_DIR="$APP_ROOT/sw"
 
 ################
 # Clang settings
