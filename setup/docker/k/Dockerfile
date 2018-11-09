@@ -1,7 +1,9 @@
-From alpine:edge
+ARG BASE
+From ${BASE}
 
 # Install K dependencies
-COPY ./scripts/alpine-install-k-dependencies.sh /app/scripts/kdeps.sh
+ARG DISTRO
+COPY ./scripts/${DISTRO}-install-k-dependencies.sh /app/scripts/kdeps.sh
 RUN /app/scripts/kdeps.sh
 
 # The root of everything
