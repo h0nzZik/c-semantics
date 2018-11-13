@@ -8,7 +8,6 @@ function build_fedora() {
 	echo "Building image based on Fedora"
 	docker build \
 		-t $DOCKER_PREFIX/kframework-fedora \
-		-f ./docker/k/Dockerfile \
 		--build-arg BASE="fedora:latest" \
 		--build-arg DISTRO="fedora" \
 		.
@@ -18,7 +17,6 @@ function build_debian() {
 	echo "Building image based on Debian"
 	docker build \
 		-t $DOCKER_PREFIX/kframework-debian \
-		-f ./docker/k/Dockerfile \
 		--build-arg BASE="debian:stable" \
 		--build-arg DISTRO="debian" \
 		.
@@ -27,13 +25,23 @@ function build_debian() {
 function build_alpine() {
 	echo "Building image based on Alpine"
 	docker build \
-		-t $DOCKER_PREFIX/kframework-debian \
-		-f ./docker/k/Dockerfile \
+		-t $DOCKER_PREFIX/kframework-alpine \
 		--build-arg BASE="alpine:edge" \
 		--build-arg DISTRO="alpine" \
 		.
 }
 
-build_fedora
-build_debian
-build_alpine
+case "$1" in
+	fedora)
+		build_fedora ;;
+	debian)
+		build_debian ;;
+	alpine)
+		build_alpine ;;
+	*)
+		echo "Building all"
+		build_fedora
+		build_debian
+		build_alpine
+		;;
+esac
