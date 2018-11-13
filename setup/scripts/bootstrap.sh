@@ -48,24 +48,6 @@ function install_ocaml() {
 	$K_BIN/k-configure-opam-dev < /dev/null
 }
 
-function install_clang() {
-	if [[ -d "$CLANG_PATH" ]]; then
-		echo "Clang seem to be already installed"
-		return
-	fi
-
-	echo "Installing Clang"
-
-	# Grab some clang
-	CLANG_STRING="clang+llvm-$CLANG_VERSION-x86_64-linux-gnu-ubuntu-16.04"
-	wget -q "http://releases.llvm.org/$CLANG_VERSION/$CLANG_STRING.tar.xz"
-	tar -xJf "$CLANG_STRING.tar.xz"
-	mv "$CLANG_STRING" "$CLANG_PATH"
-
-	# cleanup
-	rm "$CLANG_STRING.tar.xz"
-}
-
 CGMEMTIME="$SW_DIR/cgmemtime/cgmemtime"
 # We use cgmemtime to measure the memory consumption
 # of the build process
@@ -85,7 +67,7 @@ function install_cgmemtime() {
 function install_c_semantics_dependencies() {
 	echo "Installing C-semantics dependencies"
 	platform_install_c_semantics_dependencies
-	install_clang
+	"$SCRIPTS/install_clang.sh"
 	install_cgmemtime
 }
 
