@@ -1,15 +1,11 @@
 ARG DISTRO=debian
 From h0nzzik/kframework-${DISTRO}
 
-ENV SCRIPTS /app/scripts
-ENV SETTINGS /app/scripts/settings.sh
-
-# Clang
-COPY ./scripts/install-clang.sh /app/scripts/
-RUN /app/scripts/install-clang.sh
+COPY ./src/deps-${DISTRO}.sh /app/scripts/deps.sh
+RUN /app/scripts/deps.sh
 
 # C/C++ semantics
-COPY ./scripts/install-c-cpp-semantics.sh /app/scripts/
-RUN /app/scripts/install-c-cpp-semantics.sh
+COPY ./src/install-c-cpp-semantics.sh /app/scripts/
+RUN /app/scripts/install-c-cpp-semantics.sh /app
 
 RUN echo "Hello world"
