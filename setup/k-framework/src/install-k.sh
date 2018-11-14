@@ -26,7 +26,8 @@ K_BIN="$K_DIR/k-distribution/bin"
 echo "Building K OCaml backend"
 $K_BIN/k-configure-opam-dev < /dev/null
 
-echo eval `opam config env` >> ~/.bashrc
-echo export PATH="$K_BIN:\$PATH" >> ~/.bashrc
+echo 'eval `opam config env`' >> ~/k.env
+echo export PATH="$K_BIN:\$PATH" >> ~/k.env
+echo 'source ~/k.env' >> ~/.bashrc
 
 

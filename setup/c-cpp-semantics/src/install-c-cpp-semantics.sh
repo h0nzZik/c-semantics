@@ -2,6 +2,8 @@
 
 set -e
 
+source ~/k.env
+
 if [[ "$1" == "" ]]; then
 	echo "Usage: $0 /path/to/directory"
 	exit
@@ -39,7 +41,8 @@ function install_c_semantics() {
 	cd clang-tools
 	cmake -DCMAKE_CXX_FLAGS="-fno-rtti" -DLLVM_PATH="$CLANG_DIR"
 	cd ..
-	make
+	make || true # May fail
+
 }
 
 install_clang
