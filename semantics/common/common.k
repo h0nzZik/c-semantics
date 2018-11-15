@@ -5,6 +5,7 @@ require "compat.k"
 require "configuration.k"
 require "error.k"
 require "init.k"
+require "ks.k"
 require "memory.k"
 require "options.k"
 require "settings.k"
@@ -20,6 +21,7 @@ module COMMON
      imports COMMON-TRANSLATION-UNIT
      imports COMPAT
      imports ERROR
+     imports KS
      imports OPTIONS
      imports SYMLOC
 endmodule
