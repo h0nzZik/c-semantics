@@ -10,6 +10,7 @@ struct A {
 };
 
 // An aggregate
+// TODO: what if it is a union?
 struct B {
 	A a;
 };

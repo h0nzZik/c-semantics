@@ -36,10 +36,15 @@ module CPP-TRANSLATION-DECL-CLASS-SYNTAX
 endmodule
 
 module CPP-TRANSLATION-DECL-CLASS-DESTRUCTOR-SYNTAX
-     imports CPP-TRANSLATION-DECL-CLASS-SYNTAX
+     imports CPP-DYNAMIC-SORTS
 
-     syntax KItem ::= "Class.potentiallyInvokeDestructor" "(" Class ")"
-                    | "Class.invokeDestructor" "(" Class ")"
+     syntax KsBasicValue ::= Class
+
+     // Class -> Ks.unit
+     syntax KsUnaryFunction ::= "Class.potentiallyInvokeDestructor"
+
+     // Class -> Ks.unit
+     syntax KsUnaryFunction ::= "Class.invokeDestructor"
 
 endmodule
 
@@ -48,6 +53,7 @@ module CPP-TRANSLATION-DECL-CLASS-DESTRUCTOR
      imports CPP-TRANSLATION-ODR-SYNTAX
      imports CPP-SYNTAX // DestructorId
      imports CPP-SYMLOC-SYNTAX // envEntry, SymBase
+     imports KS-SYNTAX
      imports C-CONFIGURATION
 
      // N4296 3.2/3
@@ -55,7 +61,9 @@ module CPP-TRANSLATION-DECL-CLASS-DESTRUCTOR
      // <quote>
      // [...] A destructor for a class is odr-used if it is potentially invoked.
      // </quote>
-     rule <k> Class.potentiallyInvokeDestructor(_ :: Class(_, X::CId, _) #as C::Class) => Odr.newUse(Base) ...</k>
+     rule <k> Ks.apply Class.potentiallyInvokeDestructor (_ :: Class(_, X::CId, _) #as C::Class)
+              => Odr.newUse(Base)
+          ...</k>
           <curr-tu> Tu::String </curr-tu>
           <tu-id> Tu </tu-id>
           <class-id> C </class-id>
@@ -66,8 +74,24 @@ module CPP-TRANSLATION-DECL-CLASS-DESTRUCTOR
      // <quote>
      // A destructor is potentially invoked if it is invoked or as specified in [...]
      // </quote>
-     rule Class.invokeDestructor(C::Class) => Class.potentiallyInvokeDestructor(C)
+     rule Ks.apply Class.invokeDestructor C::Class
+          => ($ Class.potentiallyInvokeDestructor C)
 
+endmodule
+
+module CPP-TRANSLATION-DECL-CLASS-DATA-MEMBER-SYNTAX
+     syntax ClassDataMember ::= "Class.DataMember" "(" CId "," CPPType ")"
+     syntax KsBasicValue ::= ClassDataMember | CPPType
+
+     // ClassDataMember -> CPPType
+     syntax KsUnaryFunction ::= "Class.DataMember.getType"
+
+endmodule
+
+module CPP-TRANSLATION-DECL-CLASS-DATA-MEMBER
+     imports CPP-TRANSLATION-DECL-CLASS-DATA-MEMBER-SYNTAX
+
+     rule Fun.call Class.dataMember.getType Class.DataMember(_, T::CPPType) => T
 endmodule
 
 module CPP-TRANSLATION-DECL-CLASS

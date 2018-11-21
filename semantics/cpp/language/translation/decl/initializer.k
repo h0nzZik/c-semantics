@@ -27,6 +27,8 @@ module CPP-TRANSLATION-DECL-INITIALIZER
      imports CPP-CLASS-SYNTAX
      imports CPP-CONVERSION-SYNTAX
      imports CPP-TRANSLATION-DECL-CLASS-SYNTAX
+     imports CPP-TRANSLATION-DECL-CLASS-DATA-MEMBER-SYNTAX
+     imports CPP-TRANSLATION-DECL-CLASS-DESTRUCTOR-SYNTAX
      imports CPP-DYNAMIC-SYNTAX
      imports CPP-TRANSLATION-ELABORATOR-SYNTAX
      imports CPP-MEMORY-READING-SYNTAX
@@ -37,6 +39,7 @@ module CPP-TRANSLATION-DECL-INITIALIZER
      imports CPP-TRANSLATION-TYPING-EXPR-SYNTAX
      imports CPP-TRANSLATION-VALUE-CATEGORY-SYNTAX
      imports CPP-EXPR-MEMBERS-SYNTAX
+     imports RANGES-SYNTAX
      imports C-SETTINGS
 
      rule figureInit(Base::Expr, DestT::CPPTypeExpr, Init::Init, Type::InitType) => #figureInit(Base, DestT, Type, Init, Init, Init, NoConstructorInit)
@@ -237,12 +240,38 @@ module CPP-TRANSLATION-DECL-INITIALIZER
      rule aggInit(Base::LVal, t(Q::Quals, Mods::Set, arrayType(T::CPPType, N::Int)), L::List)
           => arrayInit(Base, t(Q, Mods, arrayType(T, N)), 0, L, noExpr)
 
-     rule <k> aggInit(Base::LVal, t(_, _, classType(C::Class)), L::List)
-               => classAndUnionAggInit(getTag(C), Base, NSDM, L, Inits, C)
+     rule aggInit(Base::LVal, t(... st: classType(C::Class), L::List)
+          => aggInitClass(Base, C, L)
+
+     syntax KItem ::= aggInitClass(LVal, Class, List)
+
+     rule <k> aggInitClass(Base::LVal, C::Class, L::List)
+               => aggInitClass.potentiallyInvokeDestructors(C)
+               ~> classAndUnionAggInit(getTag(C), Base, NSDM, L, Inits, C)
           ...</k>
           <class-id> C </class-id>
           <non-static-data-members> NSDM::List </non-static-data-members>
           <initializers> Inits::Map </initializers>
+
+     syntax KItem ::= "aggInitClass.potentiallyInvokeDestructors" Class
+
+     rule aggInitClass.potentiallyInvokeDestructors(C::Class)
+          => C
+          ~> Class.getNonStaticDataMembers
+          ~> Range.fromList
+          |> Range.transform Class.dataMember.getType
+          |> Range.filter Type.isClassType
+          |> Range.transform ClassType.potentiallyInvokeDestructor
+
+     syntax KItem ::= "Class.getNonStaticDataMembers"
+     rule <k> (C::Class ~> Class.getNonStaticDataMembers) => NSDM ...</k>
+          <curr-tr-tu> Tu::String </curr-tr-tu>
+          <tu-id> Tu </tu-id>
+          <class-id> C </class-id>
+          <non-static-data-members> NSDM::List </non-static-data-members>
+
+     syntax FunName ::= "Type.isClassType"
+     rule Fun.call Type.isClassType T::CPPType => isCPPClassType
 
      syntax Expr ::= classAndUnionAggInit(tag: Tag, base: LVal, fields: List, initList: List, initializers: Map, class: Class) [function]
 
