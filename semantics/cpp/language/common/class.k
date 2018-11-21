@@ -1,11 +1,9 @@
-module CPP-CLASS-SORTS
+module CPP-CLASS-BASIC-SORTS
      syntax ClassInfo
-     syntax ClassDataMember
-     syntax ClassFunctionMember
-endmodule
+endmodule // CPP-CLASS-BASIC-SORTS
 
-module CPP-CLASS-SYNTAX
-     imports CPP-CLASS-SORTS
+module CPP-CLASS-BASIC-SYNTAX
+     imports CPP-CLASS-BASIC-SORTS
      imports CPP-SORTS
      imports CPP-DYNAMIC-SORTS
      imports CPP-TYPING-SORTS
@@ -29,12 +27,9 @@ module CPP-CLASS-SYNTAX
                         | getClassInfo(Class) [function, klabel(getClassInfoOfClass)]
      syntax ClassInfo ::= ClassCell | IncompleteInfo
 
-     syntax ClassDataMember ::= "Class.DataMember" "(" CId "," CPPType ")"
-     syntax ClassDataMember ::= "Class.FunctionMember" "(" CId "," CPPType ")"
+endmodule // CPP-CLASS-BASIC-SYNTAX
 
-endmodule
-
-module CPP-CLASS
+module CPP-CLASS-BASIC
      imports CPP-CLASS-SYNTAX
      imports K-REFLECTION
      imports C-CONFIGURATION
@@ -47,4 +42,41 @@ module CPP-CLASS
      rule getClassInfo(C::Class) => #getClassInfo(C, getCurrentTranslationUnit())
      rule #getClassInfo(C::Class, <tu>... <class> <class-id> C </class-id> B::Bag </class> ...</tu>) => <class> <class-id> C </class-id> B </class>
      rule #getClassInfo(_, _) => #incomplete [owise]
- endmodule
+
+endmodule // CPP-CLASS-BASIC
+
+module CPP-CLASS-MEMBER-SORTS
+     syntax ClassDataMember
+     syntax ClassFunctionMember
+endmodule // CPP-CLASS-MEMBER-SORTS
+
+module CPP-CLASS-MEMBER-SYNTAX
+     imports CPP-TYPING-SORTS // CPPType
+     imports CPP-SORTS // CId
+
+     syntax ClassDataMember ::= "Class.DataMember" "(" CId "," CPPType ")"
+     syntax ClassFunctionMember ::= "Class.FunctionMember" "(" CId "," CPPType ")"
+
+endmodule // CPP-CLASS-MEMBER-SYNTAX
+
+module CPP-CLASS-MEMBER
+     imports CPP-CLASS-MEMBER-SYNTAX
+
+     // empty
+
+endmodule // CPP-CLASS-MEMBER
+
+module CPP-CLASS-SORTS
+     imports CPP-CLASS-BASIC
+     imports CPP-CLASS-MEMBER-SORTS
+endmodule // CPP-CLASS-SORTS
+
+module CPP-CLASS-SYNTAX
+     imports CPP-CLASS-BASIC-SYNTAX
+     imports CPP-CLASS-MEMBER-SYNTAX
+endmodule // CPP-CLASS-SYNTAX
+
+module CPP-CLASS
+     imports CPP-CLASS-BASIC
+     imports CPP-CLASS-MEMBER
+endmodule // CPP-CLASS
