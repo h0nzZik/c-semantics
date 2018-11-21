@@ -96,6 +96,7 @@ endmodule
 module KS-PRELUDE-SORTS
      imports INT
      imports BOOL
+     imports KAST
 
      syntax KsList
      syntax KsUnit
@@ -123,15 +124,17 @@ module KS-PRELUDE-SYNTAX
      // a -> a
      syntax KsUnaryFunction ::= "Ks.id"
      // a -> KsList a -> KsList a
-     syntax KsBinaryFunction ::= "List.cons"
+     syntax KsBinaryFunction ::= "Ks.List.cons"
      // Bool -> a -> KsList a -> KsList a
-     syntax KsTernaryFunction ::= "List.cons?"
+     syntax KsTernaryFunction ::= "Ks.List.cons?"
      // (a -> b) -> KsList a -> KsList b
-     syntax KsBinaryFunction ::= "List.map"
+     syntax KsBinaryFunction ::= "Ks.List.map"
      // (a -> Bool) -> KsList a -> KsList a
-     syntax KsBinaryFunction ::= "List.filter"
+     syntax KsBinaryFunction ::= "Ks.List.filter"
      // (a -> KsUnit) -> KsList a -> KsUnit
      syntax KsBinaryFunction ::= "Ks.each"
+
+     syntax KsUnaryFunction ::= "Ks.fromKLabel" "(" KItem ")"
 
      syntax KsList ::= "{}" [klabel(Ks.List.nil)]
                      | "(" KsTerm ":" KsList ")"
@@ -166,6 +169,8 @@ module KS-PRELUDE-BASIC
      rule List.from({}::KsList) => .List
      rule List.from((X : Xs)) => ListItem(X) List.from(Xs)
 
+     rule Ks.apply Ks.fromKLabel(#klabel(Lbl:KLabel)) X:KsTerm .KsTermList => Lbl(X, .KList)
+
 endmodule
 
 module KS-PRELUDE-ID
@@ -177,31 +182,31 @@ endmodule
 module KS-PRELUDE-CONS
      imports KS-PRELUDE-BASE
 
-     rule Ks.apply List.cons V Vs::KsList => (V : Vs)
+     rule Ks.apply Ks.List.cons V Vs::KsList => (V : Vs)
 
-     rule Ks.apply List.cons? true::Bool V::KsTerm Vs::KsList => (V : Vs)
-     rule Ks.apply List.cons? false::Bool V::KsTerm Vs::KsList => Vs
+     rule Ks.apply Ks.List.cons? true::Bool V::KsTerm Vs::KsList => (V : Vs)
+     rule Ks.apply Ks.List.cons? false::Bool V::KsTerm Vs::KsList => Vs
 
 endmodule
 
 module KS-PRELUDE-MAP
      imports KS-PRELUDE-BASE
 
-     rule Ks.apply List.map F {}
+     rule Ks.apply Ks.List.map F {}
           => {}
 
-     rule Ks.apply List.map F (X : Xs::KsList)
-          => ($ List.cons ($ F X) ($ List.map F Xs))
+     rule Ks.apply Ks.List.map F (X : Xs::KsList)
+          => ($ Ks.List.cons ($ F X) ($ Ks.List.map F Xs))
 endmodule
 
 module KS-PRELUDE-FILTER
      imports KS-PRELUDE-BASE
 
-     rule Ks.apply List.filter F {}
+     rule Ks.apply Ks.List.filter F {}
           => {}
 
-     rule Ks.apply List.filter P (X : Xs::KsList)
-          => ($ List.cons? ($ P X) X ($ List.filter P Xs))
+     rule Ks.apply Ks.List.filter P (X : Xs::KsList)
+          => ($ Ks.List.cons? ($ P X) X ($ Ks.List.filter P Xs))
 endmodule
 
 module KS-PRELUDE-EACH
