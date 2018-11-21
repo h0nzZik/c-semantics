@@ -48,6 +48,9 @@ endmodule // CPP-CLASS-BASIC
 module CPP-CLASS-MEMBER-SORTS
      syntax ClassDataMember
      syntax ClassFunctionMember
+
+     syntax KsBasicValue ::= ClassDataMember | ClassFunctionMember | CPPType
+
 endmodule // CPP-CLASS-MEMBER-SORTS
 
 module CPP-CLASS-MEMBER-SYNTAX
@@ -57,12 +60,17 @@ module CPP-CLASS-MEMBER-SYNTAX
      syntax ClassDataMember ::= "Class.DataMember" "(" CId "," CPPType ")"
      syntax ClassFunctionMember ::= "Class.FunctionMember" "(" CId "," CPPType ")"
 
+
+     // ClassDataMember -> CPPType
+     syntax KsUnaryFunction ::= "Class.DataMember.getType"
+
 endmodule // CPP-CLASS-MEMBER-SYNTAX
 
 module CPP-CLASS-MEMBER
      imports CPP-CLASS-MEMBER-SYNTAX
+     imports KS-SYNTAX
 
-     // empty
+     rule Ks.apply Class.DataMember.getType Class.DataMember(_, T::CPPType) => T
 
 endmodule // CPP-CLASS-MEMBER
 

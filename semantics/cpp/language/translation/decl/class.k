@@ -79,21 +79,6 @@ module CPP-TRANSLATION-DECL-CLASS-DESTRUCTOR
 
 endmodule
 
-module CPP-TRANSLATION-DECL-CLASS-DATA-MEMBER-SYNTAX
-     syntax ClassDataMember ::= "Class.DataMember" "(" CId "," CPPType ")"
-     syntax KsBasicValue ::= ClassDataMember | CPPType
-
-     // ClassDataMember -> CPPType
-     syntax KsUnaryFunction ::= "Class.DataMember.getType"
-
-endmodule
-
-module CPP-TRANSLATION-DECL-CLASS-DATA-MEMBER
-     imports CPP-TRANSLATION-DECL-CLASS-DATA-MEMBER-SYNTAX
-
-     rule Fun.call Class.dataMember.getType Class.DataMember(_, T::CPPType) => T
-endmodule
-
 module CPP-TRANSLATION-DECL-CLASS
      imports CPP-TRANSLATION-DECL-CLASS-SYNTAX
      imports C-CONFIGURATION
