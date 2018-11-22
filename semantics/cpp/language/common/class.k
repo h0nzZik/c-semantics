@@ -1,3 +1,7 @@
+// --------------------------------
+//      CPP-CLASS-INFO
+// --------------------------------
+
 module CPP-CLASS-INFO-SORTS
      syntax ClassInfo
 
@@ -14,9 +18,8 @@ module CPP-CLASS-INFO-SYNTAX
 
 endmodule // CPP-CLASS-INFO-SYNTAX
 
-
 module CPP-CLASS-INFO
-     imports CPP-CLASS-SYNTAX
+     imports CPP-CLASS-INFO-SYNTAX
      imports K-REFLECTION
      imports C-CONFIGURATION
      imports CPP-TYPING-SYNTAX
@@ -30,6 +33,10 @@ module CPP-CLASS-INFO
      rule #getClassInfo(_, _) => #incomplete [owise]
 
 endmodule // CPP-CLASS-INFO
+
+// --------------------------------
+//      CPP-CLASS-MEMBER
+// --------------------------------
 
 module CPP-CLASS-MEMBER-SORTS
      syntax ClassDataMember
@@ -60,7 +67,18 @@ module CPP-CLASS-MEMBER
 
 endmodule // CPP-CLASS-MEMBER
 
+// --------------------------------
+//      CPP-CLASS-MEMBERS
+// --------------------------------
+
+module CPP-CLASS-MEMBERS-SORTS
+
+     // empty
+
+endmodule // CPP-CLASS-MEMBERS-SORTS
+
 module CPP-CLASS-MEMBERS-SYNTAX
+     imports CPP-CLASS-MEMBERS-SORTS // self
 
      syntax KsBasicValue ::= Class
 
@@ -81,8 +99,48 @@ module CPP-CLASS-MEMBERS
 
 endmodule // CPP-CLASS-MEMBERS
 
+// --------------------------------
+//      CPP-CLASS-TYPE
+// --------------------------------
+
+module CPP-CLASS-TYPE-SORTS
+
+     // empty
+
+endmodule // CPP-CLASS-TYPE-SORTS
+
+module CPP-CLASS-TYPE-SYNTAX
+     imports CPP-CLASS-TYPE-SORTS // self
+
+     // CPPType -> Bool
+     syntax KsUnaryFunction ::= "Type.isClassType"
+     // CPPClassType -> Class
+     syntax KsUnaryFunction ::= "ClassType.getClass"
+
+endmodule // CPP-CLASS-TYPE-SYNTAX
+
+module CPP-CLASS-TYPE
+     imports CPP-CLASS-TYPE-SYNTAX // self
+     imports KS-SYNTAX
+     imports CPP-TYPING-SYNTAX
+
+     rule Ks.apply Type.isClassType T::CPPType => isCPPClassType(T)
+     rule Ks.apply ClassType.getClass t(... st: classType(C::Class)) => C
+
+endmodule // CPP-CLASS-TYPE
+
+// --------------------------------
+//      CPP-CLASS-OTHER
+// --------------------------------
+
+module CPP-CLASS-OTHER-SORTS
+
+     // empty
+
+endmodule // CPP-CLASS-OTHER-SORTS
+
 module CPP-CLASS-OTHER-SYNTAX
-     imports CPP-CLASS-SORTS
+     imports CPP-CLASS-OTHER-SORTS // self
      imports CPP-SORTS
      imports CPP-DYNAMIC-SORTS
      imports CPP-TYPING-SORTS
@@ -106,29 +164,21 @@ module CPP-CLASS-OTHER-SYNTAX
 
 endmodule // CPP-CLASS-INFO-SYNTAX
 
-module CPP-CLASS-TYPE-SYNTAX
+module CPP-CLASS-OTHER
+     imports CPP-CLASS-OTHER-SYNTAX // self
 
-     // CPPType -> Bool
-     syntax KsUnaryFunction ::= "Type.isClassType"
-     // CPPClassType -> Class
-     syntax KsUnaryFunction ::= "ClassType.getClass"
+endmodule // CPP-CLASS-OTHER
 
-endmodule
-
-module CPP-CLASS-TYPE
-     imports CPP-CLASS-TYPE-SYNTAX // self
-     imports KS-SYNTAX
-     imports CPP-TYPING-SYNTAX
-
-     rule Ks.apply Type.isClassType T::CPPType => isCPPClassType(T)
-     rule Ks.apply ClassType.getClass t(... st: classType(C::Class)) => C
-
-endmodule
-
+// --------------------------------
+//      CPP-CLASS
+// --------------------------------
 
 module CPP-CLASS-SORTS
-     imports CPP-CLASS-INFO
+     imports CPP-CLASS-INFO-SORTS
      imports CPP-CLASS-MEMBER-SORTS
+     imports CPP-CLASS-MEMBERS-SORTS
+     imports CPP-CLASS-OTHER-SORTS
+     imports CPP-CLASS-TYPE-SORTS
 endmodule // CPP-CLASS-SORTS
 
 module CPP-CLASS-SYNTAX
@@ -136,11 +186,13 @@ module CPP-CLASS-SYNTAX
      imports CPP-CLASS-MEMBER-SYNTAX
      imports CPP-CLASS-MEMBERS-SYNTAX
      imports CPP-CLASS-OTHER-SYNTAX
+     imports CPP-CLASS-TYPE-SYNTAX
 endmodule // CPP-CLASS-SYNTAX
 
 module CPP-CLASS
      imports CPP-CLASS-INFO
      imports CPP-CLASS-MEMBER
      imports CPP-CLASS-MEMBERS
+     imports CPP-CLASS-OTHER
      imports CPP-CLASS-TYPE
 endmodule // CPP-CLASS
