@@ -1,35 +1,21 @@
-module CPP-CLASS-BASIC-SORTS
+module CPP-CLASS-INFO-SORTS
      syntax ClassInfo
-endmodule // CPP-CLASS-BASIC-SORTS
 
-module CPP-CLASS-BASIC-SYNTAX
-     imports CPP-CLASS-BASIC-SORTS
-     imports CPP-SORTS
-     imports CPP-DYNAMIC-SORTS
+endmodule // CPP-CLASS-INFO-SORTS
+
+module CPP-CLASS-INFO-SYNTAX
+     imports CPP-CLASS-INFO-SORTS
      imports CPP-TYPING-SORTS
-     imports INT
-     syntax ClassOffset ::= classOffset(naoffset:Int, offset: Int)
-     syntax Expr ::= evalBraceOrEqualInitializer(class: Class, object: Expr, initializer: Expr) [strict(2)]
-     syntax KItem ::= returnFromBraceOrEqualInitializer(LVal, Scope)
-     syntax This ::= This()
-     syntax Expr ::= This
-     syntax Expr ::= contrivedObject(CPPType)
-     syntax ValResult ::= noObject()
-     syntax NoArg ::= NoArg()
-     syntax ValResult ::= NoArg
-     syntax CId ::= unnamedObject(Class)
-     syntax Expr ::= beginConstruction(Expr, isBaseClassSubobject: Bool) [strict]
-     syntax Expr ::= endConstruction(Expr, isConstructor: Bool) [strict]
-     syntax BaseClass ::= baseClass(Class)
-     syntax CId ::= BaseClass
-     syntax Stmt ::= "writeVTables"
+
      syntax ClassInfo ::= getClassInfo(CPPClassType) [function]
                         | getClassInfo(Class) [function, klabel(getClassInfoOfClass)]
+
      syntax ClassInfo ::= ClassCell | IncompleteInfo
 
-endmodule // CPP-CLASS-BASIC-SYNTAX
+endmodule // CPP-CLASS-INFO-SYNTAX
 
-module CPP-CLASS-BASIC
+
+module CPP-CLASS-INFO
      imports CPP-CLASS-SYNTAX
      imports K-REFLECTION
      imports C-CONFIGURATION
@@ -43,7 +29,7 @@ module CPP-CLASS-BASIC
      rule #getClassInfo(C::Class, <tu>... <class> <class-id> C </class-id> B::Bag </class> ...</tu>) => <class> <class-id> C </class-id> B </class>
      rule #getClassInfo(_, _) => #incomplete [owise]
 
-endmodule // CPP-CLASS-BASIC
+endmodule // CPP-CLASS-INFO
 
 module CPP-CLASS-MEMBER-SORTS
      syntax ClassDataMember
@@ -74,17 +60,69 @@ module CPP-CLASS-MEMBER
 
 endmodule // CPP-CLASS-MEMBER
 
+module CPP-CLASS-MEMBERS-SYNTAX
+
+     syntax KsBasicValue ::= Class
+
+     // Class -> KsList{ClassDataMember}
+     syntax KsUnaryFunction ::= "Class.getNonStaticDataMembers"
+
+endmodule // CPP-CLASS-MEMBERS-SYNTAX
+
+module CPP-CLASS-MEMBERS
+     imports CPP-CLASS-MEMBERS // self
+     imports KS-SYNTAX
+
+     rule <k> Ks.apply Class.getNonStaticDataMembers C::Class => Ks.List.from(NSDM) ...</k>
+          <curr-tr-tu> Tu::String </curr-tr-tu>
+          <tu-id> Tu </tu-id>
+          <class-id> C </class-id>
+          <non-static-data-members> NSDM::List </non-static-data-members>
+
+     syntax FunName ::= "Type.isClassType"
+     rule Fun.call Type.isClassType T::CPPType => isCPPClassType
+
+endmodule // CPP-CLASS-MEMBERS
+
+module CPP-CLASS-OTHER-SYNTAX
+     imports CPP-CLASS-SORTS
+     imports CPP-SORTS
+     imports CPP-DYNAMIC-SORTS
+     imports CPP-TYPING-SORTS
+     imports INT
+
+     syntax ClassOffset ::= classOffset(naoffset:Int, offset: Int)
+     syntax Expr ::= evalBraceOrEqualInitializer(class: Class, object: Expr, initializer: Expr) [strict(2)]
+     syntax KItem ::= returnFromBraceOrEqualInitializer(LVal, Scope)
+     syntax This ::= This()
+     syntax Expr ::= This
+     syntax Expr ::= contrivedObject(CPPType)
+     syntax ValResult ::= noObject()
+     syntax NoArg ::= NoArg()
+     syntax ValResult ::= NoArg
+     syntax CId ::= unnamedObject(Class)
+     syntax Expr ::= beginConstruction(Expr, isBaseClassSubobject: Bool) [strict]
+     syntax Expr ::= endConstruction(Expr, isConstructor: Bool) [strict]
+     syntax BaseClass ::= baseClass(Class)
+     syntax CId ::= BaseClass
+     syntax Stmt ::= "writeVTables"
+
+endmodule // CPP-CLASS-INFO-SYNTAX
+
 module CPP-CLASS-SORTS
-     imports CPP-CLASS-BASIC
+     imports CPP-CLASS-INFO
      imports CPP-CLASS-MEMBER-SORTS
 endmodule // CPP-CLASS-SORTS
 
 module CPP-CLASS-SYNTAX
-     imports CPP-CLASS-BASIC-SYNTAX
+     imports CPP-CLASS-INFO-SYNTAX
      imports CPP-CLASS-MEMBER-SYNTAX
+     imports CPP-CLASS-MEMBERS-SYNTAX
+     imports CPP-CLASS-OTHER-SYNTAX
 endmodule // CPP-CLASS-SYNTAX
 
 module CPP-CLASS
-     imports CPP-CLASS-BASIC
+     imports CPP-CLASS-INFO
      imports CPP-CLASS-MEMBER
+     imports CPP-CLASS-MEMBERS
 endmodule // CPP-CLASS

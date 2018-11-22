@@ -257,8 +257,8 @@ module CPP-TRANSLATION-DECL-INITIALIZER
      rule aggInitClass.potentiallyInvokeDestructors(C::Class)
           => C
           |> Class.getNonStaticDataMembers
-          |> Range.transform Class.dataMember.getType
-          |> Range.filter Type.isClassType
+          |> Ks.List.map Class.dataMember.getType
+          |> Ks.List.filter Type.isClassType
           |> Range.transform ClassType.potentiallyInvokeDestructor
 
      syntax Expr ::= classAndUnionAggInit(tag: Tag, base: LVal, fields: List, initList: List, initializers: Map, class: Class) [function]
