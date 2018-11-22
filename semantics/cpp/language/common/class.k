@@ -35,7 +35,7 @@ module CPP-CLASS-MEMBER-SORTS
      syntax ClassDataMember
      syntax ClassFunctionMember
 
-     syntax KsBasicValue ::= ClassDataMember | ClassFunctionMember | CPPType
+     syntax KsBasicValue ::= ClassDataMember | ClassFunctionMember
 
 endmodule // CPP-CLASS-MEMBER-SORTS
 

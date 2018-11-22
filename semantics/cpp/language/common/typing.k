@@ -23,6 +23,9 @@ module CPP-TYPING-SORTS
      syntax TemplateInfo
      syntax MethodInfo
      syntax RValue
+
+     // KS integration
+     syntax KsBasicValue ::= CPPType
 endmodule
 
 module CPP-DEPENDENT-SYNTAX
