@@ -259,7 +259,8 @@ module CPP-TRANSLATION-DECL-INITIALIZER
           |> Class.getNonStaticDataMembers
           |> Ks.List.map Class.dataMember.getType
           |> Ks.List.filter Type.isClassType
-          |> Range.transform ClassType.potentiallyInvokeDestructor
+          |> Ks.List.map ClassType.getClass
+          |> Ks.List.each Class.potentiallyInvokeDestructor
 
      syntax Expr ::= classAndUnionAggInit(tag: Tag, base: LVal, fields: List, initList: List, initializers: Map, class: Class) [function]
 

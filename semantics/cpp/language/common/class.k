@@ -79,9 +79,6 @@ module CPP-CLASS-MEMBERS
           <class-id> C </class-id>
           <non-static-data-members> NSDM::List </non-static-data-members>
 
-     syntax FunName ::= "Type.isClassType"
-     rule Fun.call Type.isClassType T::CPPType => isCPPClassType
-
 endmodule // CPP-CLASS-MEMBERS
 
 module CPP-CLASS-OTHER-SYNTAX
@@ -109,6 +106,26 @@ module CPP-CLASS-OTHER-SYNTAX
 
 endmodule // CPP-CLASS-INFO-SYNTAX
 
+module CPP-CLASS-TYPE-SYNTAX
+
+     // CPPType -> Bool
+     syntax KsUnaryFunction ::= "Type.isClassType"
+     // CPPClassType -> Class
+     syntax KsUnaryFunction ::= "ClassType.getClass"
+
+endmodule
+
+module CPP-CLASS-TYPE
+     imports CPP-CLASS-TYPE-SYNTAX // self
+     imports KS-SYNTAX
+     imports CPP-TYPING-SYNTAX
+
+     rule Ks.apply Type.isClassType T::CPPType => isCPPClassType(T)
+     rule Ks.apply ClassType.getClass t(... st: classType(C::Class)) => C
+
+endmodule
+
+
 module CPP-CLASS-SORTS
      imports CPP-CLASS-INFO
      imports CPP-CLASS-MEMBER-SORTS
@@ -125,4 +142,5 @@ module CPP-CLASS
      imports CPP-CLASS-INFO
      imports CPP-CLASS-MEMBER
      imports CPP-CLASS-MEMBERS
+     imports CPP-CLASS-TYPE
 endmodule // CPP-CLASS
