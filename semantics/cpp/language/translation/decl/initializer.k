@@ -253,25 +253,14 @@ module CPP-TRANSLATION-DECL-INITIALIZER
           <non-static-data-members> NSDM::List </non-static-data-members>
           <initializers> Inits::Map </initializers>
 
-     syntax KItem ::= "aggInitClass.potentiallyInvokeDestructors" Class
+     syntax KItem ::= "aggInitClass.potentiallyInvokeDestructors" "(" Class ")"
 
      rule aggInitClass.potentiallyInvokeDestructors(C::Class)
           => C
-          ~> Class.getNonStaticDataMembers
-          ~> Range.fromList
+          |> Class.getNonStaticDataMembers
           |> Range.transform Class.dataMember.getType
           |> Range.filter Type.isClassType
           |> Range.transform ClassType.potentiallyInvokeDestructor
-
-     syntax KItem ::= "Class.getNonStaticDataMembers"
-     rule <k> (C::Class ~> Class.getNonStaticDataMembers) => NSDM ...</k>
-          <curr-tr-tu> Tu::String </curr-tr-tu>
-          <tu-id> Tu </tu-id>
-          <class-id> C </class-id>
-          <non-static-data-members> NSDM::List </non-static-data-members>
-
-     syntax FunName ::= "Type.isClassType"
-     rule Fun.call Type.isClassType T::CPPType => isCPPClassType
 
      syntax Expr ::= classAndUnionAggInit(tag: Tag, base: LVal, fields: List, initList: List, initializers: Map, class: Class) [function]
 
