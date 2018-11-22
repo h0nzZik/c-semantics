@@ -1,4 +1,44 @@
+// ------------------------------
+//      CPP-TRACE
+// ------------------------------
+
+module CPP-TRACE-SORTS
+
+     syntax Trace
+
+endmodule // CPP-TRACE-SORTS
+
+module CPP-TRACE-SYNTAX
+     imports CPP-TRACE-SORTS // self
+
+     // remote
+     syntax K
+     syntax ValueCategory
+     syntax CPPType
+     syntax Typed
+
+     syntax Trace ::= hasTrace(K) | trace(Typed) [function] | "noTrace"
+     syntax Trace ::= combine(Trace, K) [function]
+     syntax Trace ::= combine(Trace, Trace, K) [function, klabel(combine2)]
+     syntax Trace ::= combine(Trace, Trace, Trace, ValueCategory, CPPType) [function, klabel(combine3)]
+ 
+endmodule // CPP-TRACE-SYNTAX
+
+module CPP-TRACE
+     imports CPP-TRACE-SYNTAX // self
+
+     // ...
+
+endmodule // CPP-TRACE
+
+// ------------------------------
+//      CPP-DYNAMIC
+// ------------------------------
+
 module CPP-DYNAMIC-SORTS
+     imports CPP-CLASS-BASIC-SORTS
+     imports CPP-TRACE-SORTS
+
      syntax LVal
      syntax XVal
      syntax PRV
@@ -19,7 +59,6 @@ module CPP-DYNAMIC-SORTS
      syntax NNSVal ::= Namespace | Class | ClassTemplate | Enum
      syntax NNS ::= NNSVal | NNSSpecifier
      syntax Namespace
-     syntax Class
      syntax ClassTemplate
      syntax NNSSpecifier
      syntax DeclarationType
@@ -28,7 +67,6 @@ module CPP-DYNAMIC-SORTS
      syntax Duration
      syntax QualId
      syntax Scope
-     syntax Trace
      syntax Typed ::= Val | TExpr
      syntax TemplateArgs ::= List{TemplateArg, ","}
      syntax TemplateParams ::= List{TemplateParam, ","}
@@ -37,7 +75,7 @@ module CPP-DYNAMIC-SORTS
      syntax TemplateArg
      syntax CPPValue
      syntax ValueCategory
-endmodule
+endmodule // CPP-DYNAMIC-SORTS
 
 module CPP-REVAL-SYNTAX
      imports CPP-SORTS
@@ -48,10 +86,12 @@ module CPP-DYNAMIC-SYNTAX
      imports COMMON-SYNTAX
      imports CPP-DYNAMIC-SORTS
      imports BITS-SORTS
+     imports CPP-TRACE-SYNTAX
      imports CPP-SYMLOC-SORTS
      imports CPP-TYPING-SORTS
      imports CPP-DEPENDENT-SYNTAX
      imports CPP-REVAL-SYNTAX
+     imports CPP-CLASS-BASIC-SYNTAX
      imports OPTIONS-SYNTAX
      imports FLOAT-SYNTAX
      imports INT-SYNTAX
@@ -99,11 +139,6 @@ module CPP-DYNAMIC-SYNTAX
 
      syntax Bool ::= isEvalVal(K) [function]
 
-     syntax Trace ::= hasTrace(K) | trace(Typed) [function] | "noTrace"
-     syntax Trace ::= combine(Trace, K) [function]
-     syntax Trace ::= combine(Trace, Trace, K) [function, klabel(combine2)]
-     syntax Trace ::= combine(Trace, Trace, Trace, ValueCategory, CPPType) [function, klabel(combine3)]
- 
      syntax FunctionDeclarationType ::= Function(List) 
      syntax VarDeclarationType ::= Var(InitType)
      syntax InitType ::= CopyInit() | DirectInit()

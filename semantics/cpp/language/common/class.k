@@ -1,14 +1,40 @@
+// ------------------------------
+//      CPP-CLASS-BASIC
+// ------------------------------
+
+module CPP-CLASS-BASIC-SORTS
+
+     syntax Class
+
+endmodule // CPP-CLASS-BASIC-SORTS
+
+module CPP-CLASS-BASIC-SYNTAX
+     imports CPP-CLASS-BASIC-SORTS // self
+
+     // ...
+
+endmodule // CPP-CLASS-BASIC-SYNTAX
+
+module CPP-CLASS-BASIC
+     imports CPP-CLASS-BASIC-SYNTAX // self
+
+     // ...
+
+endmodule // CPP-CLASS-BASIC
+
 // --------------------------------
 //      CPP-CLASS-INFO
 // --------------------------------
 
 module CPP-CLASS-INFO-SORTS
+
      syntax ClassInfo
 
 endmodule // CPP-CLASS-INFO-SORTS
 
 module CPP-CLASS-INFO-SYNTAX
-     imports CPP-CLASS-INFO-SORTS
+     imports CPP-CLASS-INFO-SORTS // self
+     imports CPP-CLASS-BASIC-SORTS
      imports CPP-TYPING-SORTS
 
      syntax ClassInfo ::= getClassInfo(CPPClassType) [function]
@@ -174,6 +200,7 @@ endmodule // CPP-CLASS-OTHER
 // --------------------------------
 
 module CPP-CLASS-SORTS
+     imports CPP-CLASS-BASIC-SORTS
      imports CPP-CLASS-INFO-SORTS
      imports CPP-CLASS-MEMBER-SORTS
      imports CPP-CLASS-MEMBERS-SORTS
@@ -182,6 +209,7 @@ module CPP-CLASS-SORTS
 endmodule // CPP-CLASS-SORTS
 
 module CPP-CLASS-SYNTAX
+     imports CPP-CLASS-BASIC-SYNTAX
      imports CPP-CLASS-INFO-SYNTAX
      imports CPP-CLASS-MEMBER-SYNTAX
      imports CPP-CLASS-MEMBERS-SYNTAX
@@ -190,9 +218,11 @@ module CPP-CLASS-SYNTAX
 endmodule // CPP-CLASS-SYNTAX
 
 module CPP-CLASS
+     imports CPP-CLASS-BASIC
      imports CPP-CLASS-INFO
      imports CPP-CLASS-MEMBER
      imports CPP-CLASS-MEMBERS
      imports CPP-CLASS-OTHER
      imports CPP-CLASS-TYPE
 endmodule // CPP-CLASS
+
