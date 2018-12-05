@@ -12,12 +12,11 @@ C11_FILES = $(wildcard *.k) \
 	$(wildcard language/common/*.k) $(wildcard language/common/*/*.k) \
 	$(wildcard library/*.k)
 
-.PHONY: default all fast nd thread clean .depend-$(PROFILE)-translation .depend-$(PROFILE)-execution .depend-$(PROFILE)-linking .depend-$(PROFILE)-nd .depend-$(PROFILE)-nd-thread .depend-$(PROFILE)-cpp
-
 define timestamp_of
     .build/$(PROFILE)/$(1)-kompiled/$(1)-kompiled/timestamp
 endef
 
+.PHONY: default
 default: fast
 
 $(call timestamp_of,c11-translation):
@@ -44,26 +43,38 @@ $(call timestamp_of,c11-nd-thread):
 	@echo "Kompiling the dynamic C and C++ semantics with thread-interleaving non-determinism..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d ".build/$(PROFILE)/c11-nd-thread-kompiled" --no-prelude --transition "observable ndtrans ndthread" -I $(PROFILE_DIR)/semantics
 
+.PHONY: all
 all: fast nd thread
 
+.PHONY: fast
 fast: translation execution linking
 
+.PHONY: fast-cpp
 fast-cpp: translation execution linking cpp
 
+.PHONY: translation
 translation: $(call timestamp_of,c11-translation)
 
+.PHONY: linking
 linking: $(call timestamp_of,c11-cpp14-linking)
 
+.PHONY: cpp
 cpp: $(call timestamp_of,cpp14-translation)
 
+.PHONY: execution
 execution: $(call timestamp_of,c11-cpp14)
 
+.PHONY: nd
 nd: $(call timestamp_of,c11-nd)
 
+.PHONY: thread
 thread: $(call timestamp_of,c11-nd-thread)
 
+.PHONY: clean
 clean:
 	@-rm -rf */c11-translation-kompiled */cpp14-translation-kompiled */c11-cpp14-kompiled */c11-nd-kompiled */c11-nd-thread-kompiled .kompile-* .depend-* .build/*
+
+.PHONY: .depend-$(PROFILE)-translation .depend-$(PROFILE)-execution .depend-$(PROFILE)-linking .depend-$(PROFILE)-nd .depend-$(PROFILE)-nd-thread .depend-$(PROFILE)-cpp
 
 .depend-$(PROFILE)-translation:
 	$(eval TMP := $(shell mktemp))
