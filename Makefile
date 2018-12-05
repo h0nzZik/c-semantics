@@ -58,10 +58,10 @@ define timestamp_of
     $(DIST_PROFILES)/$(PROFILE)/$(1)-kompiled/$(1)-kompiled/timestamp
 endef
 
-.PHONY: default check-vars semantics clean stdlibs deps cpp-semantics translation-semantics execution-semantics test-build pass fail fail-compile parser/cparser $(CPPPARSER_DIR)/clang-kast $(PROFILE)-native
-
+.PHONY: default
 default: test-build
 
+.PHONY: deps
 deps: $(K_BIN)/kompile
 
 $(K_BIN)/kompile:
@@ -70,6 +70,7 @@ $(K_BIN)/kompile:
 	cd $(K_SUBMODULE) \
 		&& mvn package -q -DskipTests -U
 
+.PHONY: check-vars
 check-vars: deps
 	@if ! ocaml -version > /dev/null 2>&1; then echo "ERROR: You don't seem to have ocaml installed.  You need to install this before continuing.  Please see INSTALL.md for more information."; false; fi
 	@if ! gcc -v > /dev/null 2>&1; then if ! clang -v > /dev/null 2>&1; then echo "ERROR: You don't seem to have gcc or clang installed.  You need to install this before continuing.  Please see INSTALL.md for more information."; false; fi fi
@@ -148,6 +149,7 @@ $(LIBC_SO): $(call timestamp_of,c11-cpp14-linking) $(call timestamp_of,c11-trans
 		cd $(d)/src && $(shell pwd)/$(DIST_DIR)/kcc --use-profile $(shell basename $(d)) -shared -o $(shell pwd)/$(DIST_PROFILES)/$(shell basename $(d))/lib/libc.so *.c $(KCCFLAGS) -I .)
 	@echo "$(PROFILE): Done translating the C standard library."
 
+.PHONY: $(PROFILE)-native
 $(PROFILE)-native: $(DIST_PROFILES)/$(PROFILE)/native/main.o $(DIST_PROFILES)/$(PROFILE)/native/server.c $(DIST_PROFILES)/$(PROFILE)/native/builtins.o $(DIST_PROFILES)/$(PROFILE)/native/platform.o $(DIST_PROFILES)/$(PROFILE)/native/platform.h $(DIST_PROFILES)/$(PROFILE)/native/server.h
 
 $(DIST_PROFILES)/$(PROFILE)/native/main.o: native-server/main.c native-server/server.h
@@ -163,8 +165,10 @@ $(DIST_PROFILES)/$(PROFILE)/native/%.o: $(PROFILE_DIR)/native/%.c $(wildcard nat
 	mkdir -p $(dir $@)
 	gcc $(CFLAGS) -c $< -o $@ -I native-server
 
+.PHONY: stdlibs
 stdlibs: $(LIBC_SO) $(LIBSTDCXX_SO) $(call timestamp_of,c11-cpp14)
 
+.PHONY: test-build
 test-build: stdlibs
 	@echo "Testing kcc..."
 	printf "#include <stdio.h>\nint main(void) {printf(\"x\"); return 42;}\n" | $(DIST_DIR)/kcc --use-profile $(PROFILE) -x c - -o $(DIST_DIR)/testProgram.compiled
@@ -176,12 +180,14 @@ test-build: stdlibs
 	@rm -f $(DIST_DIR)/testProgram.out
 	@echo "Done."
 
+.phony: parser/cparser
 parser/cparser:
 	@echo "Building the C parser..."
 	@$(MAKE) -C $(PARSER_DIR)
 
 $(CPPPARSER_DIR)/call-sites: $(CPPPARSER_DIR)/clang-kast
 
+.PHONY: $(CPPPARSER_DIR)/clang-kast
 $(CPPPARSER_DIR)/clang-kast: $(CPPPARSER_DIR)/Makefile
 	@echo "Building the C++ parser..."
 	@$(MAKE) -C $(CPPPARSER_DIR)
@@ -192,25 +198,31 @@ $(CPPPARSER_DIR)/Makefile:
 $(SCRIPTS_DIR)/cdecl-%/src/cdecl: $(SCRIPTS_DIR)/cdecl-%.tar.gz
 	flock -w 120 $< sh -c 'cd scripts && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
 
+.PHONY: cpp-semantics translation-semantics execution-semantics all-semantics
 %-semantics: check-vars
 	@$(MAKE) -C $(SEMANTICS_DIR) $(@:%-semantics=%)
 
+.PHONY: semantics
 semantics: all-semantics
 
 check:	pass fail fail-compile
 
+.PHONY: pass
 pass:	test-build
 	@$(MAKE) -C $(PASS_TESTS_DIR) comparison
 
+.PHONY: fail
 fail:	test-build
 	@$(MAKE) -C $(FAIL_TESTS_DIR) comparison
 
+.PHONY: fail-compile
 fail-compile:	test-build
 	@$(MAKE) -C $(FAIL_COMPILE_TESTS_DIR) comparison
 
 os-check:	test-build
 	@$(MAKE) -C $(PASS_TESTS_DIR) os-comparison
 
+.PHONY: clean
 clean:
 	-$(MAKE) -C $(PARSER_DIR) clean
 	-$(MAKE) -C $(CPPPARSER_DIR) clean
