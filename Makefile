@@ -192,20 +192,10 @@ $(CPPPARSER_DIR)/Makefile:
 $(SCRIPTS_DIR)/cdecl-%/src/cdecl: $(SCRIPTS_DIR)/cdecl-%.tar.gz
 	flock -w 120 $< sh -c 'cd scripts && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
 
-translation-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) translation
+%-semantics: check-vars
+	@$(MAKE) -C $(SEMANTICS_DIR) $(@:%-semantics=%)
 
-linking-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) linking
-
-execution-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) execution
-
-cpp-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) cpp
-
-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) all
+semantics: all-semantics
 
 check:	pass fail fail-compile
 
