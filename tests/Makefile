@@ -40,7 +40,6 @@ UNDEFPASS_TARGETS = $(foreach var,  $(UNDEFPASS_DIRECTORIES), results-pass-$(var
 WORKINGFAIL_TARGETS = $(foreach var,  $(WORKINGFAIL_DIRECTORIES), results-fail-$(var).xml)
 WORKINGPASS_TARGETS = $(foreach var,  $(WORKINGPASS_DIRECTORIES), results-pass-$(var).xml)
 
-CLEAN_TARGETS = $(foreach var, $(ALL_DIRECTORIES), clean-$(var))
 
 
 all: $(PARSER) test 
@@ -86,10 +85,18 @@ results-runs-%.xml:
 results-fail-%.xml:
 	@perl runtest.pl -f $*
 		
-clean: $(CLEAN_TARGETS) clean-./
-	@-rm *.o *.a
-	@-rm "1"
+
+CLEAN_TARGETS = $(foreach var, $(ALL_DIRECTORIES), clean-$(var))
+
+clean: $(CLEAN_TARGETS)
+	@-rm -f *.o *.a
+	@-rm -f "1"
 	$(MAKE) -C gcc-test clean
 	
-clean-%:
-	@-rm -f ./$*/*.parsed.c ./$*/*.compcert.c ./$*/*.gcc ./$*/*.kcc ./$*/*.o ./$*/*.pass ./$*/*.tmp ./$*/*.log ./$*/*.cil ./$*/*-gen.maude ./$*/*.gen.maude ./$*/*.pre.gen ./$*/*.prepre.gen ./$*/*.xml ./$*/a.out ./$*/*.kdump
+$(CLEAN_TARGETS):
+	$(eval DIR := $(@:clean-%=%))
+	@if [ -f "$(DIR)/Makefile" ]; then $(MAKE) -C $(DIR) clean; fi
+
+# We probably do not need this, but I will keep it here for some time.
+#clean-%:
+#	@-rm -f ./$*/*.parsed.c ./$*/*.compcert.c ./$*/*.gcc ./$*/*.kcc ./$*/*.o ./$*/*.pass ./$*/*.tmp ./$*/*.log ./$*/*.cil ./$*/*-gen.maude ./$*/*.gen.maude ./$*/*.pre.gen ./$*/*.prepre.gen ./$*/*.xml ./$*/a.out ./$*/*.kdump

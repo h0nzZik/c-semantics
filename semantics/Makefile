@@ -101,9 +101,12 @@ clean:
 	$(KDEP) -d ".build/$(PROFILE)/c11-nd-thread-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- c11-cpp14.k > $(TMP)
 	mv $(TMP) $@
 
--include .depend-$(PROFILE)-translation
--include .depend-$(PROFILE)-cpp
--include .depend-$(PROFILE)-linking
--include .depend-$(PROFILE)-execution
--include .depend-$(PROFILE)-nd
--include .depend-$(PROFILE)-nd-thread
+# See https://stackoverflow.com/a/4270649/6209703
+ifneq ($(MAKECMDGOALS),clean)
+  -include .depend-$(PROFILE)-translation
+  -include .depend-$(PROFILE)-cpp
+  -include .depend-$(PROFILE)-linking
+  -include .depend-$(PROFILE)-execution
+  -include .depend-$(PROFILE)-nd
+  -include .depend-$(PROFILE)-nd-thread
+endif

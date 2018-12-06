@@ -7,19 +7,16 @@ export KDEP = $(K_BIN)/kdep
 
 SEMANTICS_DIR = semantics
 SCRIPTS_DIR = scripts
-PARSER_DIR = parser
-CPPPARSER_DIR = clang-tools
+CPARSER_DIR = parser
+CLANGTOOLS_DIR = clang-tools
 export PROFILE_DIR = $(shell pwd)/profiles/x86-gcc-limited-libc
 export PROFILE = $(shell basename $(PROFILE_DIR))
 export SUBPROFILE_DIRS =
 TESTS_DIR = tests
-PARSER = $(PARSER_DIR)/cparser
+PARSER = $(CPARSER_DIR)/cparser
 DIST_DIR = dist
 KCCFLAGS = -D_POSIX_C_SOURCE=200809 -nodefaultlibs -fno-native-compilation
 CFLAGS = -std=gnu11 -Wall -Wextra -Werror -pedantic
-PASS_TESTS_DIR = tests/unit-pass
-FAIL_TESTS_DIR = tests/unit-fail
-FAIL_COMPILE_TESTS_DIR = tests/unit-fail-compilation
 
 FILES_TO_DIST = \
 	$(SCRIPTS_DIR)/kcc \
@@ -34,9 +31,9 @@ FILES_TO_DIST = \
 	$(SCRIPTS_DIR)/ignored-flags \
 	$(SCRIPTS_DIR)/program-runner \
 	$(SCRIPTS_DIR)/histogram-csv \
-	$(PARSER_DIR)/cparser \
-	$(CPPPARSER_DIR)/clang-kast \
-	$(CPPPARSER_DIR)/call-sites \
+	$(CPARSER_DIR)/cparser \
+	$(CLANGTOOLS_DIR)/clang-kast \
+	$(CLANGTOOLS_DIR)/call-sites \
 	$(SCRIPTS_DIR)/cdecl-3.6/src/cdecl \
 	LICENSE \
 	licenses
@@ -59,7 +56,7 @@ define timestamp_of
 endef
 
 .PHONY: default
-default: test-build
+default: kcc-sanity-check
 
 .PHONY: deps
 deps: $(K_BIN)/kompile
@@ -168,8 +165,8 @@ $(DIST_PROFILES)/$(PROFILE)/native/%.o: $(PROFILE_DIR)/native/%.c $(wildcard nat
 .PHONY: stdlibs
 stdlibs: $(LIBC_SO) $(LIBSTDCXX_SO) $(call timestamp_of,c11-cpp14)
 
-.PHONY: test-build
-test-build: stdlibs
+.PHONY: kcc-sanity-check
+kcc-sanity-check: stdlibs
 	@echo "Testing kcc..."
 	printf "#include <stdio.h>\nint main(void) {printf(\"x\"); return 42;}\n" | $(DIST_DIR)/kcc --use-profile $(PROFILE) -x c - -o $(DIST_DIR)/testProgram.compiled
 	$(DIST_DIR)/testProgram.compiled 2> /dev/null > $(DIST_DIR)/testProgram.out; test $$? -eq 42
@@ -183,54 +180,65 @@ test-build: stdlibs
 .phony: parser/cparser
 parser/cparser:
 	@echo "Building the C parser..."
-	@$(MAKE) -C $(PARSER_DIR)
+	@$(MAKE) -C $(CPARSER_DIR)
 
-$(CPPPARSER_DIR)/call-sites: $(CPPPARSER_DIR)/clang-kast
+$(CLANGTOOLS_DIR)/call-sites: $(CLANGTOOLS_DIR)/clang-kast
 
-.PHONY: $(CPPPARSER_DIR)/clang-kast
-$(CPPPARSER_DIR)/clang-kast: $(CPPPARSER_DIR)/Makefile
+.PHONY: $(CLANGTOOLS_DIR)/clang-kast
+$(CLANGTOOLS_DIR)/clang-kast: $(CLANGTOOLS_DIR)/Makefile
 	@echo "Building the C++ parser..."
-	@$(MAKE) -C $(CPPPARSER_DIR)
+	@$(MAKE) -C $(CLANGTOOLS_DIR)
 
-$(CPPPARSER_DIR)/Makefile:
-	@cd $(CPPPARSER_DIR) && cmake .
+$(CLANGTOOLS_DIR)/Makefile:
+	@cd $(CLANGTOOLS_DIR) && cmake .
 
 $(SCRIPTS_DIR)/cdecl-%/src/cdecl: $(SCRIPTS_DIR)/cdecl-%.tar.gz
 	flock -w 120 $< sh -c 'cd scripts && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
 
-.PHONY: cpp-semantics translation-semantics execution-semantics all-semantics
-%-semantics: check-vars
+SOME_SEMANTICS = cpp-semantics linking-semantics translation-semantics execution-semantics all-semantics
+.PHONY: $(SOME_SEMANTICS)
+$(SOME_SEMANTICS): check-vars
 	@$(MAKE) -C $(SEMANTICS_DIR) $(@:%-semantics=%)
 
 .PHONY: semantics
 semantics: all-semantics
 
-check:	pass fail fail-compile
+check: test-pass test-fail test-fail-compilation
 
-.PHONY: pass
-pass:	test-build
-	@$(MAKE) -C $(PASS_TESTS_DIR) comparison
+PASS_TESTS_DIR = tests/unit-pass
+FAIL_TESTS_DIR = tests/unit-fail
+FAIL_COMPILE_TESTS_DIR = tests/unit-fail-compilation
 
-.PHONY: fail
-fail:	test-build
-	@$(MAKE) -C $(FAIL_TESTS_DIR) comparison
+.PHONY: test-pass test-fail test-fail-compilation
+test-%: kcc-sanity-check
+	$(eval DIR := tests/unit-$(@:test-%=%))
+	@$(MAKE) -C $(DIR) comparison
 
-.PHONY: fail-compile
-fail-compile:	test-build
-	@$(MAKE) -C $(FAIL_COMPILE_TESTS_DIR) comparison
 
-os-check:	test-build
+# TODO Ensure nobody uses these aliases
+# and remove them. They just make the build
+# scripts irregular.
+.PHONY: pass fail fail-compile
+pass: test-pass
+fail: test-fail
+fail-compile: test-fail-compilation
+
+# TODO remove this irregularity.
+.PHONY: os-check
+os-check: kcc-sanity-check
 	@$(MAKE) -C $(PASS_TESTS_DIR) os-comparison
 
+SUBDIRECTORIES = parser clang-tools semantics tests
+CLEAN_TARGETS = $(foreach var, $(SUBDIRECTORIES), clean-$(var))
+
+.PHONY: $(CLEAN_TARGETS)
+$(CLEAN_TARGETS):
+	$(eval DIR := $(@:clean-%=%))
+	@if [ -f "$(DIR)/Makefile" ]; then $(MAKE) -C $(DIR) clean; fi
+
+#
 .PHONY: clean
-clean:
-	-$(MAKE) -C $(PARSER_DIR) clean
-	-$(MAKE) -C $(CPPPARSER_DIR) clean
-	-$(MAKE) -C $(SEMANTICS_DIR) clean
-	-$(MAKE) -C $(TESTS_DIR) clean
-	-$(MAKE) -C $(PASS_TESTS_DIR) clean
-	-$(MAKE) -C $(FAIL_TESTS_DIR) clean
-	-$(MAKE) -C $(FAIL_COMPILE_TESTS_DIR) clean
+clean: $(CLEAN_TARGETS)
 	-rm -f $(K_SUBMODULE)/make.timestamp
 	-rm -rf $(DIST_DIR)
 	-rm -f ./*.tmp ./*.log ./*.cil ./*-gen.maude ./*.gen.maude ./*.pre.gen ./*.prepre.gen ./a.out ./*.kdump ./*.pre.pre 
