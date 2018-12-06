@@ -16,7 +16,7 @@ TESTS_DIR = tests
 PARSER = $(CPARSER_DIR)/cparser
 DIST_DIR = dist
 KCCFLAGS = -D_POSIX_C_SOURCE=200809 -nodefaultlibs -fno-native-compilation
-CFLAGS = -std=gnu11 -Wall -Wextra -Werror -pedantic
+CFLAGS = -std=gnu -Wall -Wextra -Werror -pedantic
 
 FILES_TO_DIST = \
 	$(SCRIPTS_DIR)/kcc \
@@ -111,27 +111,27 @@ $(DIST_PROFILES)/$(PROFILE): $(DIST_DIR)/kcc $(PROFILE_FILE_DEPS) $(SUBPROFILE_F
 	@-$(foreach d, $(SUBPROFILE_DIRS), \
 		cp -RLp $(DIST_PROFILES)/$(PROFILE)/native/* $(DIST_PROFILES)/$(shell basename $(d))/native;)
 
-$(call timestamp_of,c11-cpp14): execution-semantics $(DIST_PROFILES)/$(PROFILE)
-	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c11-cpp14-kompiled $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,c-cpp): execution-semantics $(DIST_PROFILES)/$(PROFILE)
+	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c11-cpp14-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(call timestamp_of,c11-cpp14-linking): linking-semantics $(DIST_PROFILES)/$(PROFILE)
-	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c11-cpp14-linking-kompiled $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,c-cpp-linking): linking-semantics $(DIST_PROFILES)/$(PROFILE)
+	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c11-cpp14-linking-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(call timestamp_of,c11-translation): translation-semantics $(DIST_PROFILES)/$(PROFILE)
-	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c11-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,c-translation): translation-semantics $(DIST_PROFILES)/$(PROFILE)
+	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c11-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(call timestamp_of,cpp14-translation): cpp-semantics $(DIST_PROFILES)/$(PROFILE)
-	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp14-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,cpp-translation): cpp-semantics $(DIST_PROFILES)/$(PROFILE)
+	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp14-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(LIBSTDCXX_SO): $(call timestamp_of,c11-cpp14-linking) $(call timestamp_of,cpp14-translation) $(wildcard $(PROFILE_DIR)/compiler-src/*.C) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/compiler-src/*)) $(DIST_PROFILES)/$(PROFILE)
+$(LIBSTDCXX_SO): $(call timestamp_of,c-cpp-linking) $(call timestamp_of,cpp-translation) $(wildcard $(PROFILE_DIR)/compiler-src/*.C) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/compiler-src/*)) $(DIST_PROFILES)/$(PROFILE)
 	@echo "$(PROFILE): Translating the C++ standard library..."
 	@cd $(PROFILE_DIR)/compiler-src && $(shell pwd)/$(DIST_DIR)/kcc --use-profile $(PROFILE) -shared -o $(shell pwd)/$(LIBSTDCXX_SO) *.C $(KCCFLAGS) -I .
 	@$(foreach d,$(SUBPROFILE_DIRS), \
@@ -139,7 +139,7 @@ $(LIBSTDCXX_SO): $(call timestamp_of,c11-cpp14-linking) $(call timestamp_of,cpp1
 		$(shell pwd)/$(DIST_DIR)/kcc --use-profile $(shell basename $(d)) -shared -o $(shell pwd)/$(DIST_PROFILES)/$(shell basename $(d))/lib/libstdc++.so *.C $(KCCFLAGS) -I .;)
 	@echo "$(PROFILE): Done translating the C++ standard library."
 
-$(LIBC_SO): $(call timestamp_of,c11-cpp14-linking) $(call timestamp_of,c11-translation) $(wildcard $(PROFILE_DIR)/src/*.c) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/src/*.c)) $(DIST_PROFILES)/$(PROFILE)
+$(LIBC_SO): $(call timestamp_of,c-cpp-linking) $(call timestamp_of,c-translation) $(wildcard $(PROFILE_DIR)/src/*.c) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/src/*.c)) $(DIST_PROFILES)/$(PROFILE)
 	@echo "$(PROFILE): Translating the C standard library..."
 	@cd $(PROFILE_DIR)/src && $(shell pwd)/$(DIST_DIR)/kcc --use-profile $(PROFILE) -shared -o $(shell pwd)/$(LIBC_SO) *.c $(KCCFLAGS) -I .
 	@$(foreach d,$(SUBPROFILE_DIRS), \
@@ -163,7 +163,7 @@ $(DIST_PROFILES)/$(PROFILE)/native/%.o: $(PROFILE_DIR)/native/%.c $(wildcard nat
 	gcc $(CFLAGS) -c $< -o $@ -I native-server
 
 .PHONY: stdlibs
-stdlibs: $(LIBC_SO) $(LIBSTDCXX_SO) $(call timestamp_of,c11-cpp14)
+stdlibs: $(LIBC_SO) $(LIBSTDCXX_SO) $(call timestamp_of,c-cpp)
 
 .PHONY: kcc-sanity-check
 kcc-sanity-check: stdlibs

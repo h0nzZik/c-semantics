@@ -19,10 +19,10 @@ require "c-settings.k"
 require "cpp-settings.k"
 require "extensions-execution.k"
 
-module C11-CPP14-SYNTAX
+module C-CPP-EXECUTION-SYNTAX
 endmodule
 
-module C11-CPP14
+module C-CPP-EXECUTION
      imports CPP-COMMON
      imports CPP-EXECUTION
      imports CPP-LIBRARY
