@@ -87,42 +87,42 @@ KDEP_DEF = $(KDEP_BASE) $(KDEP_DEFAULT_FLAGS)
 KDEP_BOTH = -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp
 KDEP_EXEC = $(KDEP_BOTH) -- c11-cpp14.k
 
-.depend-$(PROFILE)-translation:
+.depend-$(PROFILE)-c11-translation:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_DEF) -d "$(BPROFILE)/c11-translation-kompiled" -I $(PROFILE_DIR)/semantics/c -- c11-translation.k > $(TMP)
 	mv $(TMP) $@
 
-.depend-$(PROFILE)-cpp:
+.depend-$(PROFILE)-cpp14-translation:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_DEF) -d "$(BPROFILE)/cpp14-translation-kompiled" $(KDEP_BOTH) -- cpp14-translation.k > $(TMP)
 	mv $(TMP) $@
 
-.depend-$(PROFILE)-linking:
+.depend-$(PROFILE)-c11-cpp14-linking:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-linking-kompiled" $(KDEP_BOTH) -- c11-cpp14-linking.k > $(TMP)
 	mv $(TMP) $@
 
-.depend-$(PROFILE)-execution:
+.depend-$(PROFILE)-c11-cpp14:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-kompiled" $(KDEP_EXEC) > $(TMP)
 	mv $(TMP) $@
 
-.depend-$(PROFILE)-nd:
+.depend-$(PROFILE)-c11-nd:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-kompiled" $(KDEP_EXEC) > $(TMP)
 	mv $(TMP) $@
 
-.depend-$(PROFILE)-nd-thread:
+.depend-$(PROFILE)-c11-nd-thread:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-thread-kompiled" $(KDEP_EXEC) > $(TMP)
 	mv $(TMP) $@
 
 # See https://stackoverflow.com/a/4270649/6209703
 ifneq ($(MAKECMDGOALS),clean)
-  -include .depend-$(PROFILE)-translation
-  -include .depend-$(PROFILE)-cpp
-  -include .depend-$(PROFILE)-linking
-  -include .depend-$(PROFILE)-execution
-  -include .depend-$(PROFILE)-nd
-  -include .depend-$(PROFILE)-nd-thread
+  -include .depend-$(PROFILE)-c11-translation
+  -include .depend-$(PROFILE)-cpp14-translation
+  -include .depend-$(PROFILE)-c11-cpp14-linking
+  -include .depend-$(PROFILE)-c11-cpp14
+  -include .depend-$(PROFILE)-c11-nd
+  -include .depend-$(PROFILE)-c11-nd-thread
 endif
