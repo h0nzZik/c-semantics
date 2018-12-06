@@ -86,22 +86,27 @@ clean:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_DEFAULT_FLAGS) -d "$(BPROFILE)/c11-translation-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -- c11-translation.k > $(TMP)
 	mv $(TMP) $@
+
 .depend-$(PROFILE)-cpp:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_DEFAULT_FLAGS) -d "$(BPROFILE)/cpp14-translation-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/cpp -I $(PROFILE_DIR)/semantics/c -- cpp14-translation.k > $(TMP)
 	mv $(TMP) $@
+
 .depend-$(PROFILE)-linking:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_DEFAULT_FLAGS) -d "$(BPROFILE)/c11-cpp14-linking-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/cpp -I $(PROFILE_DIR)/semantics/c -- c11-cpp14-linking.k > $(TMP)
 	mv $(TMP) $@
+
 .depend-$(PROFILE)-execution:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_DEFAULT_FLAGS) -d "$(BPROFILE)/c11-cpp14-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- c11-cpp14.k > $(TMP)
 	mv $(TMP) $@
+
 .depend-$(PROFILE)-nd:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) -d "$(BPROFILE)/c11-nd-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- c11-cpp14.k > $(TMP)
 	mv $(TMP) $@
+
 .depend-$(PROFILE)-nd-thread:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) -d "$(BPROFILE)/c11-nd-thread-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- c11-cpp14.k > $(TMP)
