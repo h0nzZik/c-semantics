@@ -84,8 +84,8 @@ clean:
 
 KDEP_BASE = $(KDEP) -I $(PROFILE_DIR)/semantics
 KDEP_DEF = $(KDEP_BASE) $(KDEP_DEFAULT_FLAGS)
-
 KDEP_BOTH = -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp
+KDEP_EXEC = $(KDEP_BOTH) -- c11-cpp14.k
 
 .depend-$(PROFILE)-translation:
 	$(eval TMP := $(shell mktemp))
@@ -104,17 +104,17 @@ KDEP_BOTH = -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp
 
 .depend-$(PROFILE)-execution:
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-kompiled" $(KDEP_BOTH) -- c11-cpp14.k > $(TMP)
+	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-kompiled" $(KDEP_EXEC) > $(TMP)
 	mv $(TMP) $@
 
 .depend-$(PROFILE)-nd:
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-kompiled" $(KDEP_BOTH) -- c11-cpp14.k > $(TMP)
+	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-kompiled" $(KDEP_EXEC) > $(TMP)
 	mv $(TMP) $@
 
 .depend-$(PROFILE)-nd-thread:
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-thread-kompiled" $(KDEP_BOTH) -- c11-cpp14.k > $(TMP)
+	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-thread-kompiled" $(KDEP_EXEC) > $(TMP)
 	mv $(TMP) $@
 
 # See https://stackoverflow.com/a/4270649/6209703
