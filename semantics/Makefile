@@ -82,39 +82,28 @@ clean:
 
 .PHONY: .depend-$(PROFILE)-translation .depend-$(PROFILE)-execution .depend-$(PROFILE)-linking .depend-$(PROFILE)-nd .depend-$(PROFILE)-nd-thread .depend-$(PROFILE)-cpp
 
-KDEP_BASE = $(KDEP) -I $(PROFILE_DIR)/semantics
-KDEP_DEF = $(KDEP_BASE) $(KDEP_DEFAULT_FLAGS)
-KDEP_BOTH = -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp
-KDEP_EXEC = $(KDEP_BOTH) -- c11-cpp14.k
 
-.depend-$(PROFILE)-c11-translation:
-	$(eval TMP := $(shell mktemp))
-	$(KDEP_DEF) -d "$(BPROFILE)/c11-translation-kompiled" -I $(PROFILE_DIR)/semantics/c -- c11-translation.k > $(TMP)
-	mv $(TMP) $@
+LANGUAGE_DEFS = c11-translation cpp14-translation c11-cpp14-linking c11-cpp14
 
-.depend-$(PROFILE)-cpp14-translation:
-	$(eval TMP := $(shell mktemp))
-	$(KDEP_DEF) -d "$(BPROFILE)/cpp14-translation-kompiled" $(KDEP_BOTH) -- cpp14-translation.k > $(TMP)
-	mv $(TMP) $@
+KDEP_DEF = $(KDEP) $(KDEP_DEFAULT_FLAGS)
+KDEP_INCLUDE = -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp
 
-.depend-$(PROFILE)-c11-cpp14-linking:
+LANGUAGE_DEPS = $(foreach var, $(LANGUAGE_DEFS), .depend-$(PROFILE)-$(var))
+$(LANGUAGE_DEPS):
+	$(eval LANG := $(@:.depend-$(PROFILE)-%=%))
+	@echo "Lang: $(LANG)"
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-linking-kompiled" $(KDEP_BOTH) -- c11-cpp14-linking.k > $(TMP)
-	mv $(TMP) $@
-
-.depend-$(PROFILE)-c11-cpp14:
-	$(eval TMP := $(shell mktemp))
-	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-kompiled" $(KDEP_EXEC) > $(TMP)
+	$(KDEP_DEF) -d "$(BPROFILE)/$(LANG)-kompiled" $(KDEP_INCLUDE) -- $(LANG).k > $(TMP)
 	mv $(TMP) $@
 
 .depend-$(PROFILE)-c11-nd:
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-kompiled" $(KDEP_EXEC) > $(TMP)
+	$(KDEP_DEF) -d "$(BPROFILE)/c11-nd-kompiled" $(KDEP_INCLUDE) -- c11-cpp14.k > $(TMP)
 	mv $(TMP) $@
 
 .depend-$(PROFILE)-c11-nd-thread:
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_BASE) -d "$(BPROFILE)/c11-nd-thread-kompiled" $(KDEP_EXEC) > $(TMP)
+	$(KDEP_DEF) -d "$(BPROFILE)/c11-nd-thread-kompiled" $(KDEP_INCLUDE) -- c11-cpp14.k > $(TMP)
 	mv $(TMP) $@
 
 # See https://stackoverflow.com/a/4270649/6209703
