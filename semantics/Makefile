@@ -19,26 +19,26 @@ endef
 .PHONY: default
 default: fast
 
-KOMPILE_DEF = $(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) --no-prelude -I $(PROFILE_DIR)/semantics
+KOMPILE_DEF = $(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) --no-prelude -I $(PROFILE_DIR)/semantics -w all -v --debug
 KOMPILE_CPP = $(KOMPILE_DEF) $(CPP_KOMPILE_FLAGS)
 
 $(call timestamp_of,c11-translation):
 	@echo "Kompiling the static C semantics..."
-	$(KOMPILE_DEF) c11-translation.k -d ".build/$(PROFILE)/c11-translation-kompiled" -w all -v --debug
+	$(KOMPILE_DEF) c11-translation.k -d ".build/$(PROFILE)/c11-translation-kompiled"
 
 $(call timestamp_of,cpp14-translation):
 	@echo "Kompiling the static C++ semantics..."
-	$(KOMPILE_CPP) cpp14-translation.k -d ".build/$(PROFILE)/cpp14-translation-kompiled" -w all -v --debug
+	$(KOMPILE_CPP) cpp14-translation.k -d ".build/$(PROFILE)/cpp14-translation-kompiled"
 
 $(call timestamp_of,c11-cpp14-linking):
 	@echo "Kompiling the C and C++ linking semantics..."
-	$(KOMPILE_CPP) c11-cpp14-linking.k -d ".build/$(PROFILE)/c11-cpp14-linking-kompiled" -w all -v --debug
+	$(KOMPILE_CPP) c11-cpp14-linking.k -d ".build/$(PROFILE)/c11-cpp14-linking-kompiled"
 
 KOMPILE_EXEC = $(KOMPILE_DEF) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k
 
 $(call timestamp_of,c11-cpp14):
 	@echo "Kompiling the dynamic C and C++ semantics..."
-	$(KOMPILE_EXEC) -d ".build/$(PROFILE)/c11-cpp14-kompiled" -w all -v --transition "interpRule" --debug
+	$(KOMPILE_EXEC) -d ".build/$(PROFILE)/c11-cpp14-kompiled" --transition "interpRule"
 
 $(call timestamp_of,c11-nd):
 	@echo "Kompiling the dynamic C and C++ semantics with expression sequencing non-determinism..."
