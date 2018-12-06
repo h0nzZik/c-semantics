@@ -88,20 +88,19 @@ LANGUAGE_DEFS = c11-translation cpp14-translation c11-cpp14-linking c11-cpp14
 KDEP_DEF = $(KDEP) $(KDEP_DEFAULT_FLAGS)
 KDEP_INCLUDE = -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp
 
-LANGUAGE_DEPS = $(foreach var, $(LANGUAGE_DEFS), .depend-$(PROFILE)-$(var))
-$(LANGUAGE_DEPS):
+.depend-$(PROFILE)-%:
 	$(eval LANG := $(@:.depend-$(PROFILE)-%=%))
 	@echo "Lang: $(LANG)"
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_DEF) -d "$(BPROFILE)/$(LANG)-kompiled" $(KDEP_INCLUDE) -- $(LANG).k > $(TMP)
 	mv $(TMP) $@
 
-.depend-$(PROFILE)-c11-nd:
+.depend-$(PROFILE)-c11-cpp14-nd:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_DEF) -d "$(BPROFILE)/c11-nd-kompiled" $(KDEP_INCLUDE) -- c11-cpp14.k > $(TMP)
 	mv $(TMP) $@
 
-.depend-$(PROFILE)-c11-nd-thread:
+.depend-$(PROFILE)-c11-cpp14-nd-thread:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP_DEF) -d "$(BPROFILE)/c11-nd-thread-kompiled" $(KDEP_INCLUDE) -- c11-cpp14.k > $(TMP)
 	mv $(TMP) $@
@@ -112,6 +111,6 @@ ifneq ($(MAKECMDGOALS),clean)
   -include .depend-$(PROFILE)-cpp14-translation
   -include .depend-$(PROFILE)-c11-cpp14-linking
   -include .depend-$(PROFILE)-c11-cpp14
-  -include .depend-$(PROFILE)-c11-nd
-  -include .depend-$(PROFILE)-c11-nd-thread
+  -include .depend-$(PROFILE)-c11-cpp14-nd
+  -include .depend-$(PROFILE)-c11-cpp14-nd-thread
 endif
