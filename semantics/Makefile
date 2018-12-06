@@ -19,29 +19,34 @@ endef
 .PHONY: default
 default: fast
 
+KOMPILE_DEF = $(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) --no-prelude -I $(PROFILE_DIR)/semantics
+KOMPILE_CPP = $(KOMPILE_DEF) $(CPP_KOMPILE_FLAGS)
+
 $(call timestamp_of,c11-translation):
 	@echo "Kompiling the static C semantics..."
-	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) c11-translation.k -d ".build/$(PROFILE)/c11-translation-kompiled" --no-prelude -w all -v --debug -I $(PROFILE_DIR)/semantics
+	$(KOMPILE_DEF) c11-translation.k -d ".build/$(PROFILE)/c11-translation-kompiled" -w all -v --debug
 
 $(call timestamp_of,cpp14-translation):
 	@echo "Kompiling the static C++ semantics..."
-	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(CPP_KOMPILE_FLAGS) cpp14-translation.k -d ".build/$(PROFILE)/cpp14-translation-kompiled" --no-prelude -w all -v --debug -I $(PROFILE_DIR)/semantics
+	$(KOMPILE_CPP) cpp14-translation.k -d ".build/$(PROFILE)/cpp14-translation-kompiled" -w all -v --debug
 
 $(call timestamp_of,c11-cpp14-linking):
 	@echo "Kompiling the C and C++ linking semantics..."
-	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(CPP_KOMPILE_FLAGS) c11-cpp14-linking.k -d ".build/$(PROFILE)/c11-cpp14-linking-kompiled" --no-prelude -w all -v --debug -I $(PROFILE_DIR)/semantics
+	$(KOMPILE_CPP) c11-cpp14-linking.k -d ".build/$(PROFILE)/c11-cpp14-linking-kompiled" -w all -v --debug
+
+KOMPILE_EXEC = $(KOMPILE_DEF) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k
 
 $(call timestamp_of,c11-cpp14):
 	@echo "Kompiling the dynamic C and C++ semantics..."
-	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d ".build/$(PROFILE)/c11-cpp14-kompiled" --no-prelude -w all -v --transition "interpRule" --debug -I $(PROFILE_DIR)/semantics
+	$(KOMPILE_EXEC) -d ".build/$(PROFILE)/c11-cpp14-kompiled" -w all -v --transition "interpRule" --debug
 
 $(call timestamp_of,c11-nd):
 	@echo "Kompiling the dynamic C and C++ semantics with expression sequencing non-determinism..."
-	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d ".build/$(PROFILE)/c11-nd-kompiled" --no-prelude --transition "observable ndtrans" --superheat "ndheat" --supercool "ndlocal" -I $(PROFILE_DIR)/semantics
+	$(KOMPILE_EXEC) -d ".build/$(PROFILE)/c11-nd-kompiled" --transition "observable ndtrans" --superheat "ndheat" --supercool "ndlocal"
 
 $(call timestamp_of,c11-nd-thread):
 	@echo "Kompiling the dynamic C and C++ semantics with thread-interleaving non-determinism..."
-	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d ".build/$(PROFILE)/c11-nd-thread-kompiled" --no-prelude --transition "observable ndtrans ndthread" -I $(PROFILE_DIR)/semantics
+	$(KOMPILE_EXEC) -d ".build/$(PROFILE)/c11-nd-thread-kompiled" --transition "observable ndtrans ndthread"
 
 .PHONY: all
 all: fast nd thread
