@@ -92,12 +92,12 @@ KDEP_DEF = $(KDEP_BASE) $(KDEP_DEFAULT_FLAGS)
 
 .depend-$(PROFILE)-cpp:
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_DEF) -d "$(BPROFILE)/cpp14-translation-kompiled" -I $(PROFILE_DIR)/semantics/cpp -I $(PROFILE_DIR)/semantics/c -- cpp14-translation.k > $(TMP)
+	$(KDEP_DEF) -d "$(BPROFILE)/cpp14-translation-kompiled" -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- cpp14-translation.k > $(TMP)
 	mv $(TMP) $@
 
 .depend-$(PROFILE)-linking:
 	$(eval TMP := $(shell mktemp))
-	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-linking-kompiled" -I $(PROFILE_DIR)/semantics/cpp -I $(PROFILE_DIR)/semantics/c -- c11-cpp14-linking.k > $(TMP)
+	$(KDEP_DEF) -d "$(BPROFILE)/c11-cpp14-linking-kompiled" -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- c11-cpp14-linking.k > $(TMP)
 	mv $(TMP) $@
 
 .depend-$(PROFILE)-execution:
