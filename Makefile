@@ -3,7 +3,7 @@ include $(dir $(lastword $(MAKEFILE_LIST)))/.build/inc.mk
 export PROFILE_DIR = $(shell pwd)/profiles/x86-gcc-limited-libc
 export PROFILE = $(shell basename $(PROFILE_DIR))
 export SUBPROFILE_DIRS =
-PARSER = $(CPARSER_DIR)/cparser
+PARSER = parser/cparser
 KCCFLAGS = -D_POSIX_C_SOURCE=200809 -nodefaultlibs -fno-native-compilation
 CFLAGS = -std=gnu11 -Wall -Wextra -Werror -pedantic
 
@@ -164,19 +164,19 @@ kcc-sanity-check: stdlibs
 	@rm -f dist/testProgram.out
 	@echo "Done."
 
-parser/cparser: indenter
+scripts/cparser: $(indent)
 	@echo "Building the C parser..."
-	@$(MAKE) --no-print-directory -C $(CPARSER_DIR) | $(indenter)
+	@$(MAKE) -s -C parser 2>&1 | $(indent)
 
 clang-tools/call-sites: clang-tools/clang-kast
 
 .PHONY: clang-tools/clang-kast
 clang-tools/clang-kast: clang-tools/Makefile
 	@echo "Building the C++ parser..."
-	@$(MAKE) --no-print-directory -C clang-tools | $(indenter)
+	@$(MAKE) -s -C clang-tools 2>&1 | $(indent)
 
 clang-tools/Makefile:
-	@cd clang-tools && cmake . | $(indent)
+	@cd clang-tools && cmake . 2>&1 | $(indent)
 
 scripts/cdecl-%/src/cdecl: scripts/cdecl-%.tar.gz
 	@echo "Building cdecl"
@@ -186,7 +186,7 @@ SOME_SEMANTICS = cpp-semantics linking-semantics translation-semantics execution
 .PHONY: $(SOME_SEMANTICS)
 $(SOME_SEMANTICS): dependencies
 	@echo "Entering './semantics' to build $@"
-	@$(MAKE) --no-print-directory -C ./semantics $(@:%-semantics=%) | $(indent)
+	@$(MAKE) -s -C ./semantics $(@:%-semantics=%) 2>&1 | $(indent)
 
 .PHONY: semantics
 semantics: all-semantics
@@ -200,7 +200,7 @@ FAIL_COMPILE_TESTS_DIR = tests/unit-fail-compilation
 .PHONY: test-pass test-fail test-fail-compilation
 test-%: kcc-sanity-check
 	$(eval DIR := tests/unit-$(@:test-%=%))
-	@$(MAKE) --no-print-directory -C $(DIR) comparison | $(indent)
+	@$(MAKE) -s -C $(DIR) comparison 2>&1 | $(indent)
 
 
 # TODO Ensure nobody uses these aliases
@@ -214,7 +214,7 @@ fail-compile: test-fail-compilation
 # TODO remove this irregularity.
 .PHONY: os-check
 os-check: kcc-sanity-check
-	@$(MAKE) --no-print-directory -C $(PASS_TESTS_DIR) os-comparison | $(indent)
+	@$(MAKE) -s -C $(PASS_TESTS_DIR) os-comparison 2>&1 | $(indent)
 
 SUBDIRECTORIES = parser clang-tools semantics tests
 CLEAN_TARGETS = $(foreach var, $(SUBDIRECTORIES), clean-$(var))
