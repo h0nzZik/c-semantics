@@ -29,37 +29,61 @@ all: $(KOMPILED_DEFINITION_TIMESTAMPS)
 # .build/$(PROFILE)/$(DEFINITION)/$(VARIANT)/$(DEFINITION)-kompiled/timestamp
 
 KOMPILE_FLAGS_EXECUTION = --no-expand-macros --ocaml-serialize-config '$$PGM' --ocaml-dump-exit-code 139
-
 KOMPILE_FLAGS_VARIANT_ND = --transition "observable ndtrans" --superheat "ndheat" --supercool "ndlocal"
 KOMPILE_FLAGS_VARIANT_NDTHREAD = --transition "observable ndtrans ndthread"
 
 getFlagsForDefinition = $(if $(findstring /c-cpp-execution/,$(1)),$(KOMPILE_FLAGS_EXECUTION))
 getFlagsForVariant = $(if $(findstring /ndthread/,$(1)),$(KOMPILE_FLAGS_VARIANT_NDTHREAD)) \
 		     $(if $(findstring /nd/,$(1)),$(KOMPILE_FLAGS_VARIANT_ND))
-
 getFlags = $(call getFlagsForDefinition,$(1))$(call getFlagsForVariant,$(1))
 
 .build/%/timestamp:
 	$(eval CURRENT_FLAGS = $(call getFlags,$@))
-	#$(eval CURRENT_FLAGS = $(shell $(BUILD_DIR)/getFlags TODO)))
 	@echo $(CURRENT_FLAGS)
-	$(MAKE) -f Makefile2 "$@"
+	$(MAKE) -f Makefile2 PROFILES_DIR="$(C_SEMANTICS_DIR)/profiles" "$@"
+a:
+	@echo A
+b:
+	@echo B
 
 .PHONY: clean
 clean:
-	@-rm -rf */c-translation-kompiled */cpp-translation-kompiled */c-cpp-kompiled */c-nd-kompiled */c-nd-thread-kompiled .kompile-* .depend-* .build/*
+	@rm -rf .build
+
+
+PROFILES_DIR=$(C_SEMANTICS_DIR)/profiles
+
+# Let us generate all the .depend files
+# even if we do not want to build everything.
+
+# See https://stackoverflow.com/a/4270649/6209703
+ifneq ($(MAKECMDGOALS),clean)
+  -include $(foreach var, $(LANGUAGE_VARIANTS), .build/$(PROFILE)/$(var)/depend.mk)
+endif
 #
 #
-KDEP_DEFAULT_FLAGS=
 
-KDEP_DEF = $(KDEP) $(KDEP_DEFAULT_FLAGS)
-KDEP_INCLUDE = -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp
+# Naming scheme:
+# .build/$(PROFILE)/$(DEFINITION)/$(VARIANT)/$(DEFINITION)-kompiled/timestamp
+# .build/$(PROFILE)/$(DEFINITION)/$(VARIANT)/depend.mk
 
-.depend-%--basic:
+
+#TODO reuse existing for 'nd' and 'ndthread' variants
+#.depend-%--basic:
+.build/%/depend.mk:
+	$(call setCurrentVars,$@)
+	$(eval CURRENT_PROFILE_DIR := $(PROFILES_DIR)/$(CURRENT_PROFILE_NAME))
 	@echo "Generating $@"
-	$(eval LANG := $(@:.depend-$(PROFILE)-%--basic=%))
+
 	$(eval TMP := $(shell mktemp))
-	@$(KDEP_DEF) -d ".build/$(PROFILE)/$(LANG)-kompiled" $(KDEP_INCLUDE) -- $(LANG).k > $(TMP)
+	@$(KDEP) \
+		-d $(CURRENT_BUILD_DIR) \
+		-I $(CURRENT_PROFILE_DIR)/semantics \
+		-I $(CURRENT_PROFILE_DIR)/semantics/c \
+		-I $(CURRENT_PROFILE_DIR)/semantics/cpp \
+		-- $(CURRENT_DEFINITION).k > $(TMP)
+
+	@mkdir -p $(dir $@)
 	@mv $(TMP) $@
 
 # Nondeterministic and thread version have the same dependencies.
@@ -73,7 +97,4 @@ KDEP_INCLUDE = -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PR
 	@echo "Generating $@"
 	@cp $< $@
 
-# See https://stackoverflow.com/a/4270649/6209703
-ifneq ($(MAKECMDGOALS),clean)
-  -include $(LANGUAGE_DEPENDENCIES)
-endif
+

@@ -1,13 +1,14 @@
 include $(dir $(lastword $(MAKEFILE_LIST)))/../.build/inc.mk
 include definitions.mk
 
+
 .PHONY: default
 default: help
 
 .PHONY: help
 help:
 	@echo 'List of variables:'
-	@echo '  PROFILE_DIR (optional)'
+	@echo '  PROFILES_DIR (mandatory)'
 	@echo '  KOMPILE_FLAGS (mandatory)'
 	@echo
 	@echo 'Format of targets:'
@@ -20,7 +21,7 @@ help:
 	@echo
 
 
-# Parameter: PROFILE_DIR
+# Parameter: PROFILES_DIR
 
 OPAQUE_KLABELS = --opaque-klabels c-translation.k
 
@@ -35,25 +36,12 @@ KOMPILE_DEFAULT_FLAGS = --backend ocaml \
 # We also provide a symlinked directory:
 # ./build/$(PROFILE)/$(DEFINITION)/$(VARIANT)/kompiled/
 
-.build/%/timestamp:
-	$(eval S := $(@:.build/%=%))
-	$(eval L := $(call targetComponents,$S))
-	$(eval CURRENT_PROFILE_NAME := $(call profileNameFromTimestamp,$L))
-	$(eval CURRENT_DEFINITION := $(call languageDefinitionFromTimestamp,$L))
-	$(eval CURRENT_VARIANT := $(call variantNameFromTimestamp,$L))
-	$(eval CURRENT_TARGET_DIR := .build/$(CURRENT_PROFILE_NAME)/$(CURRENT_DEFINITION)/$(CURRENT_VARIANT))
-	$(eval PROFILE_DIR := $(if $(PROFILE_DIR),$(PROFILE_DIR),$(C_SEMANTICS_DIR)/profiles/$(CURRENT_PROFILE_NAME)))
 
-	@echo '--------------------------'
-	@echo 'Building $@'
-	@echo 'S: $S'
-	@echo 'L: $L'
-	@echo 'CURRENT_PROFILE_NAME: $(CURRENT_PROFILE_NAME)'
-	@echo 'PROFILE_DIR: $(PROFILE_DIR)'
-	@echo 'CURRENT_DEFINITION: $(CURRENT_DEFINITION)'
-	@echo 'CURRENT_VARIANT: $(CURRENT_VARIANT)'
-	@echo 'CURRENT_TARGET_DIR: $(CURRENT_TARGET_DIR)'
-	@echo 'Kompiling $(CURRENT_DEFINITION)/$(CURRENT_VARIANT)'
+.build/%/timestamp:
+	$(call setCurrentVars,$@)
+	$(eval CURRENT_PROFILE_DIR := $(PROFILES_DIR)/$(CURRENT_PROFILE_NAME))
+	@#echo 'CURRENT_PROFILE_DIR: $(CURRENT_PROFILE_DIR)'
+	@#echo 'Kompiling $(CURRENT_DEFINITION)/$(CURRENT_VARIANT)'
 
 	$(KOMPILE) \
 		$(KOMPILE_FLAGS) \
@@ -61,9 +49,9 @@ KOMPILE_DEFAULT_FLAGS = --backend ocaml \
 		-I $(PROFILE_DIR)/semantics \
 		--no-prelude -w all -v --debug \
 		$(CURRENT_DEFINITION).k \	
-		-d $(CURRENT_TARGET_DIR)
+		-d $(CURRENT_BUILD_DIR)
 
-	ln -s '$(CURRENT_DEFINITION)-kompiled' '$(CURRENT_TARGET_DIR)/kompiled'
+	ln -s '$(CURRENT_DEFINITION)-kompiled' '$(CURRENT_BUILD_DIR)/kompiled'
 
 
 

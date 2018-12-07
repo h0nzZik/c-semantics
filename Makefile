@@ -50,7 +50,7 @@ endef
 default: kcc-sanity-check
 
 .PHONY: deps
-deps: $(K_BIN)/kompile
+deps: $(KOMPILE)
 
 $(K_BIN)/kompile:
 	@echo "== submodule: $@"

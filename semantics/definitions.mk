@@ -1,6 +1,7 @@
 LANGUAGE_DEFS = $(patsubst %.k,%,$(wildcard *.k))
 
 # I think that the toplevel should enumerate or specify those...
+# TODO different file?
 LANGUAGE_VARIANTS = c-cpp-execution/basic    \
 		    c-cpp-execution/nd       \
                     c-cpp-execution/ndthread \
@@ -40,4 +41,27 @@ languageDefinitionFromTimestamp = $(word 2,$(call targetComponents,$(1)))
 # to: 'basic'
 variantNameFromTimestamp = $(word 3,$(call targetComponents,$(1)))
 
+define setCurrentVars
+	$(eval S := $(1:.build/%=%))
+	$(eval L := $(call targetComponents,$S))
+	$(eval CURRENT_PROFILE_NAME := $(call profileNameFromTimestamp,$L))
+	$(eval CURRENT_DEFINITION := $(call languageDefinitionFromTimestamp,$L))
+	$(eval CURRENT_VARIANT := $(call variantNameFromTimestamp,$L))
+	$(eval CURRENT_GOAL := $(CURRENT_PROFILE_NAME)/$(CURRENT_DEFINITION)/$(CURRENT_VARIANT))
+	$(eval CURRENT_BUILD_DIR := .build/$(CURRENT_GOAL))
+	$(eval CURRENT_KOMPILED_DIR := $(CURRENT_BUILD_DIR)/$(CURRENT_DEFINITION)-kompiled)
+	$(eval CURRENT_TIMESTAMP := $(CURRENT_KOMPILED_DIR)/timestamp)
+
+	@#echo '--------------------------'
+	@#echo 'Target $1'
+	@#echo 'S: $S'
+	@#echo 'L: $L'
+	@#echo 'CURRENT_PROFILE_NAME: $(CURRENT_PROFILE_NAME)'
+	@#echo 'CURRENT_DEFINITION: $(CURRENT_DEFINITION)'
+	@#echo 'CURRENT_VARIANT: $(CURRENT_VARIANT)'
+	@#echo 'CURRENT_BUILD_DIR: $(CURRENT_BUILD_DIR)'
+	@#echo 'CURRENT_KOMPILED_DIR: $(CURRENT_KOMPILED_DIR)'
+	@#echo 'CURRENT_TIMESTAMP: $(CURRENT_TIMESTAMP)'
+
+endef
 
