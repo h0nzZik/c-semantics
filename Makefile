@@ -161,7 +161,7 @@ distribute-all: $(indent) | $(DIST_DEFINITION_TIMESTAMPS)
 dist/profiles/%/timestamp: semantics/.build/%/timestamp
 	@echo "$@"
 
-semantics/.build/%/timestamp:
+semantics/.build/%/timestamp: dependencies
 	@echo "Entering './semantics' to build $@"
 	@$(MAKE) -s -C ./semantics $(@:semantics/%=%) 2>&1 | $(indent)
 	@echo "Need to build $@"
