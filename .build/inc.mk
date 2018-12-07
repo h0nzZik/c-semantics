@@ -1,3 +1,7 @@
+ifeq ($(strip $(INC_MK_INCLUDED)),)
+INC_MK_INCLUDED = 1
+
+$(info inc.mk level ${MAKELEVEL})
 ifeq (0,${MAKELEVEL})
 
 export C_SEMANTICS_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST))))/..)
@@ -23,9 +27,13 @@ export K_BIN := $(K_SUBMODULE_DIR)/k-distribution/target/release/k/bin
 export KOMPILE := $(K_BIN)/kompile
 export KDEP := $(K_BIN)/kdep
 
+#check_executable = $(if $(strip $(wildcard $(1))),,$(warning File $(1) does not exist.))
+#$(call check_executable,$(KDEP))
 
 export indent := $(SCRIPTS_DIR)/indenter
 
 #$(info kompile: $(KOMPILE))
 
 endif # ifeq (0,${MAKELEVEL})
+endif # ifeq ($(strip $(INC_MK_INCLUDED)),)
+

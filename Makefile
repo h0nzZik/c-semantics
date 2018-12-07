@@ -310,7 +310,6 @@ clean: $(CLEAN_TARGETS)
 	-rm -rf dist
 	-rm -f ./*.tmp ./*.log ./*.cil ./*-gen.maude ./*.gen.maude ./*.pre.gen ./*.prepre.gen ./a.out ./*.kdump ./*.pre.pre 
 
-include $(DEPENDENCIES_DIR)/dependencies.mk
 
 #TODO clean should not remove calculate dependencies.
 # Or should it? Because 'prune' should do every possible thing.
@@ -328,3 +327,6 @@ indenter: $(SCRIPTS_DIR)/indenter
 $(SCRIPTS_DIR)/indenter: $(SCRIPTS_DIR)/indenter.c
 	@echo "Building indenter"
 	@gcc -std=c99 $< -o $@
+
+
+include $(DEPENDENCIES_DIR)/dependencies.mk
