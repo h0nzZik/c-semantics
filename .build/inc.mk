@@ -16,7 +16,7 @@ export K_OPTS := -Xmx8g -Xss32m
 #export K_BIN ?= $(K_SUBMODULE_DIR)/k-distribution/target/release/k/bin
 export K_BIN = $(K_SUBMODULE_DIR)/k-distribution/target/release/k/bin
 
-$(info K_BIN: $(K_BIN))
+#$(info K_BIN: $(K_BIN))
 
 export KOMPILE = $(K_BIN)/kompile
 export KDEP = $(K_BIN)/kdep

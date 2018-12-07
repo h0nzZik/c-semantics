@@ -5,7 +5,7 @@ export PROFILE = $(shell basename $(PROFILE_DIR))
 export SUBPROFILE_DIRS =
 PARSER = $(CPARSER_DIR)/cparser
 KCCFLAGS = -D_POSIX_C_SOURCE=200809 -nodefaultlibs -fno-native-compilation
-CFLAGS = -std=gnu -Wall -Wextra -Werror -pedantic
+CFLAGS = -std=gnu11 -Wall -Wextra -Werror -pedantic
 
 FILES_TO_DIST = \
 	$(SCRIPTS_DIR)/kcc \
@@ -47,19 +47,29 @@ endef
 .PHONY: default
 default: kcc-sanity-check
 
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@echo "  clean"
+	@echo "  prune"
+
+
 $(DIST_DIR)/writelong: $(SCRIPTS_DIR)/writelong.c
 	@mkdir -p $(dir $@)
 	@gcc $(CFLAGS) $< -o $@
 
-$(DIST_DIR)/kcc: $(SCRIPTS_DIR)/getopt.pl $(PERL_MODULES) $(DIST_DIR)/writelong $(FILES_TO_DIST)
+$(DIST_DIR)/RV_Kcc/Opts.pm: $(SCRIPTS_DIR)/RV_Kcc/Opts.pm $(SCRIPTS_DIR)/getopt.pl
+	@echo Building "$@"
+	@mkdir -p $(dir $@)
+	@cat $< | perl $(SCRIPTS_DIR)/getopt.pl > $@
+
+
+$(DIST_DIR)/kcc: $(DIST_DIR)/RV_Kcc/Opts.pm $(PERL_MODULES) $(DIST_DIR)/writelong $(FILES_TO_DIST) 
 	@echo Building 'kcc'
 	@mkdir -p $(DIST_DIR)/RV_Kcc
-	@cp -RLp $(FILES_TO_DIST) $(DIST_DIR)
-	@cp -RLp $(PERL_MODULES) $(DIST_DIR)/RV_Kcc
-	@rm -f $(DIST_DIR)/RV_Kcc/Opts.pm
-	@# TODO we can have a target for this
-	@cat $(SCRIPTS_DIR)/RV_Kcc/Opts.pm | perl $(SCRIPTS_DIR)/getopt.pl > $(DIST_DIR)/RV_Kcc/Opts.pm
-	@cp -p $(DIST_DIR)/kcc $(DIST_DIR)/kclang
+	cp -RLp $(FILES_TO_DIST) $(DIST_DIR)
+	cp -RLp $(PERL_MODULES) $(DIST_DIR)/RV_Kcc
+	cp -p $(DIST_DIR)/kcc $(DIST_DIR)/kclang
 
 .PHONY: pack
 pack: $(DIST_DIR)/kcc
@@ -222,3 +232,9 @@ clean: $(CLEAN_TARGETS)
 	-rm -f ./*.tmp ./*.log ./*.cil ./*-gen.maude ./*.gen.maude ./*.pre.gen ./*.prepre.gen ./a.out ./*.kdump ./*.pre.pre 
 
 include $(DEPENDENCIES_DIR)/dependencies.mk
+
+#TODO clean should not remove calculate dependencies.
+# Or should it? Because 'prune' should do every possible thing.
+.PHONY: prune
+prune: clean
+	@echo 'Not implemented yet, but should delete all dependencies'
