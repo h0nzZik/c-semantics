@@ -1,14 +1,5 @@
-BUILD_DIR = $(CURDIR)/.build
-K_SUBMODULE = $(BUILD_DIR)/k
-export K_OPTS := -Xmx8g -Xss32m
-export K_BIN ?= $(K_SUBMODULE)/k-distribution/target/release/k/bin
-export KOMPILE = $(K_BIN)/kompile -O2
-export KDEP = $(K_BIN)/kdep
+include $(dir $(lastword $(MAKEFILE_LIST)))/.build/inc.mk
 
-SEMANTICS_DIR = semantics
-SCRIPTS_DIR = scripts
-CPARSER_DIR = parser
-CLANGTOOLS_DIR = clang-tools
 export PROFILE_DIR = $(shell pwd)/profiles/x86-gcc-limited-libc
 export PROFILE = $(shell basename $(PROFILE_DIR))
 export SUBPROFILE_DIRS =
@@ -52,7 +43,7 @@ LIBC_SO = $(DIST_PROFILES)/$(PROFILE)/lib/libc.so
 LIBSTDCXX_SO = $(DIST_PROFILES)/$(PROFILE)/lib/libstdc++.so
 
 define timestamp_of
-    $(DIST_PROFILES)/$(PROFILE)/$(1)-kompiled/$(1)-kompiled/timestamp
+    $(DIST_DIR)/profiles/$(PROFILE)/$(1)-kompiled/$(1)-kompiled/timestamp
 endef
 
 .PHONY: default
