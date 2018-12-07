@@ -13,12 +13,12 @@ help:
 
 # To make testing easier
 ifeq ($(PROFILE),)
-PROFILE = x86-gcc-limited-libc
+PROFILE := x86-gcc-limited-libc
 endif
 
 
 # Format: .build/x86-gcc-limited-libc/c-cpp-linking/basic/c-cpp-linking-kompiled/timestamp
-KOMPILED_DEFINITION_TIMESTAMPS = $(foreach var, $(call timestampOfAll,$(LANGUAGE_VARIANTS)), .build/x86-gcc-limited-libc/$(var))
+KOMPILED_DEFINITION_TIMESTAMPS := $(addprefix .build/x86-gcc-limited-libc/,$(LANGUAGE_VARIANTS_TIMESTAMPS)) 
 
 .PHONY: all
 all: $(KOMPILED_DEFINITION_TIMESTAMPS)
@@ -28,23 +28,20 @@ all: $(KOMPILED_DEFINITION_TIMESTAMPS)
 # Naming scheme:
 # .build/$(PROFILE)/$(DEFINITION)/$(VARIANT)/$(DEFINITION)-kompiled/timestamp
 
-KOMPILE_FLAGS_EXECUTION = --no-expand-macros --ocaml-serialize-config '$$PGM' --ocaml-dump-exit-code 139
-KOMPILE_FLAGS_VARIANT_ND = --transition "observable ndtrans" --superheat "ndheat" --supercool "ndlocal"
-KOMPILE_FLAGS_VARIANT_NDTHREAD = --transition "observable ndtrans ndthread"
+KOMPILE_FLAGS_EXECUTION := --no-expand-macros --ocaml-serialize-config '$$PGM' --ocaml-dump-exit-code 139
+KOMPILE_FLAGS_VARIANT_ND := --transition "observable ndtrans" --superheat "ndheat" --supercool "ndlocal"
+KOMPILE_FLAGS_VARIANT_NDTHREAD := --transition "observable ndtrans ndthread"
 
 getFlagsForDefinition = $(if $(findstring /c-cpp-execution/,$(1)),$(KOMPILE_FLAGS_EXECUTION))
 getFlagsForVariant = $(if $(findstring /ndthread/,$(1)),$(KOMPILE_FLAGS_VARIANT_NDTHREAD)) \
 		     $(if $(findstring /nd/,$(1)),$(KOMPILE_FLAGS_VARIANT_ND))
 getFlags = $(call getFlagsForDefinition,$(1))$(call getFlagsForVariant,$(1))
 
+
 .build/%/timestamp:
-	$(eval CURRENT_FLAGS = $(call getFlags,$@))
-	@echo $(CURRENT_FLAGS)
-	$(MAKE) -f Makefile2 PROFILES_DIR="$(C_SEMANTICS_DIR)/profiles" "$@"
-a:
-	@echo A
-b:
-	@echo B
+	$(eval CURRENT_FLAGS := $(call getFlags,$@))
+	@echo "Building $@"
+	@$(MAKE) -f Makefile2 PROFILES_DIR="$(C_SEMANTICS_DIR)/profiles" "$@" 2>&1 | $(indent)
 
 .PHONY: clean
 clean:

@@ -1,8 +1,15 @@
-LANGUAGE_DEFS = $(patsubst %.k,%,$(wildcard *.k))
+# Assume imported inc.ml
+
+# Depends on the place of invocation
+#LANGUAGE_DEFS = $(patsubst %.k,%,$(wildcard *.k))
+LANGUAGE_DEFS := c-cpp-execution \
+		c-cpp-linking   \
+		cpp-translation \
+		c-translation   \
 
 # I think that the toplevel should enumerate or specify those...
 # TODO different file?
-LANGUAGE_VARIANTS = c-cpp-execution/basic    \
+LANGUAGE_VARIANTS := c-cpp-execution/basic    \
 		    c-cpp-execution/nd       \
                     c-cpp-execution/ndthread \
 		    c-translation/basic      \
@@ -40,6 +47,9 @@ languageDefinitionFromTimestamp = $(word 2,$(call targetComponents,$(1)))
 # from: 'x86-gcc-limited-libc/c-cpp-execution/basic/c-cpp-execution-kompiled/timestamp'
 # to: 'basic'
 variantNameFromTimestamp = $(word 3,$(call targetComponents,$(1)))
+
+
+LANGUAGE_VARIANTS_TIMESTAMPS = $(call timestampOfAll,$(LANGUAGE_VARIANTS))
 
 define setCurrentVars
 	$(eval S := $(1:.build/%=%))

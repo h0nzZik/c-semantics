@@ -1,4 +1,5 @@
 include $(dir $(lastword $(MAKEFILE_LIST)))/.build/inc.mk
+include semantics/definitions.mk
 
 export PROFILE_DIR = $(shell pwd)/profiles/x86-gcc-limited-libc
 export PROFILE = $(shell basename $(PROFILE_DIR))
@@ -21,9 +22,9 @@ FILES_TO_DIST = \
 	scripts/program-runner \
 	scripts/histogram-csv \
 	scripts/cdecl-3.6/src/cdecl \
-	scripts/cparser \
-	scripts/clang-kast \
-	scripts/call-sites \
+	parser/cparser \
+	clang-tools/clang-kast \
+	clang-tools/call-sites \
 	LICENSE \
 	licenses
 
@@ -31,10 +32,8 @@ PROFILE_FILES = include src compiler-src native pp cpp-pp cc cxx
 PROFILE_FILE_DEPS = $(foreach f, $(PROFILE_FILES), $(PROFILE_DIR)/$(f))
 SUBPROFILE_FILE_DEPS = $(foreach d, $(SUBPROFILE_DIRS), $(foreach f, $(PROFILE_FILES), $(d)/$(f)))
 
-PERL_MODULES = \
-	scripts/RV_Kcc/Opts.pm \
-	scripts/RV_Kcc/Files.pm \
-	scripts/RV_Kcc/Shell.pm
+
+#TODO a subgoal 'dist', 'distribution'
 
 DIST_PROFILES = dist/profiles
 LIBC_SO = $(DIST_PROFILES)/$(PROFILE)/lib/libc.so
@@ -55,6 +54,7 @@ help:
 
 
 dist/writelong: scripts/writelong.c
+	@echo "Building 'writelong'"
 	@mkdir -p $(dir $@)
 	@gcc $(CFLAGS) $< -o $@
 
@@ -63,13 +63,17 @@ dist/RV_Kcc/Opts.pm: scripts/RV_Kcc/Opts.pm scripts/getopt.pl
 	@mkdir -p $(dir $@)
 	@cat $< | perl scripts/getopt.pl > $@
 
+KCC_PERL_MODULES = \
+	scripts/RV_Kcc/Opts.pm \
+	scripts/RV_Kcc/Files.pm \
+	scripts/RV_Kcc/Shell.pm
 
-dist/kcc: dist/RV_Kcc/Opts.pm $(PERL_MODULES) dist/writelong $(FILES_TO_DIST) 
+dist/kcc: dist/RV_Kcc/Opts.pm $(KCC_PERL_MODULES) dist/writelong $(FILES_TO_DIST) 
 	@echo Building 'kcc'
 	@mkdir -p dist/RV_Kcc
-	cp -RLp $(FILES_TO_DIST) dist
-	cp -RLp $(PERL_MODULES) dist/RV_Kcc
-	cp -p dist/kcc dist/kclang
+	@cp -RLp $(FILES_TO_DIST) dist
+	@cp -RLp $(KCC_PERL_MODULES) dist/RV_Kcc
+	@cp -p dist/kcc dist/kclang
 
 .PHONY: pack
 pack: dist/kcc
@@ -86,38 +90,117 @@ pack: dist/kcc
 	@rm -rf dist/fatlib dist/RV_Kcc dist/packlists dist/fatpacker.trace
 
 $(DIST_PROFILES)/$(PROFILE): dist/kcc $(PROFILE_FILE_DEPS) $(SUBPROFILE_FILE_DEPS) $(PROFILE)-native | dependencies
+	@echo "Building profile $@"
+	@echo "  subprofiles: $(SUBPROFILE_FILE_DEPS)"
 	@mkdir -p $@/lib
 	@printf "%s" $(PROFILE) > dist/current-profile
 	@printf "%s" $(PROFILE) > dist/default-profile
+	@#echo "Copying profile dependencies"
 	@-$(foreach f, $(PROFILE_FILE_DEPS), \
 		cp -RLp $(f) $(DIST_PROFILES)/$(PROFILE);)
+	@#echo "Creating subprofile directories"
 	@$(foreach d, $(SUBPROFILE_DIRS), \
 		mkdir -p $(DIST_PROFILES)/$(shell basename $(d))/lib;)
+	@#echo "Copying subprofile files"
 	@-$(foreach d, $(SUBPROFILE_DIRS), $(foreach f, $(PROFILE_FILES), \
 		cp -RLp $(d)/$(f) $(DIST_PROFILES)/$(shell basename $(d))/$(f);))
+	@#echo "Copying subprofile native stuff"
 	@-$(foreach d, $(SUBPROFILE_DIRS), \
 		cp -RLp $(DIST_PROFILES)/$(PROFILE)/native/* $(DIST_PROFILES)/$(shell basename $(d))/native;)
+	@echo done.
 
-$(call timestamp_of,c-cpp): execution-semantics $(DIST_PROFILES)/$(PROFILE)
+
+# For compatability with RV-Match build
+.PHONY: translation-semantics
+translation-semantics: dist-c-translation-semantics
+
+.PHONY: translation-semantics
+cpp-semantics: dist-cpp-translation-semantics
+
+.PHONY: linking-semantics
+cpp-semantics: dist-c-cpp-linking-semantics
+
+.PHONY: execution-semantics
+cpp-semantics: dist-c-cpp-execution-semantics
+
+# Example:
+# dist-cpp-translation-semantics
+DIST_LANGUAGE_DEFS = $(foreach var, $(LANGUAGE_DEFS), dist-$(var)-semantics)
+
+# Example:
+# build-cpp-translation-semantics
+BUILD_LANGUAGE_DEFS = $(foreach var, $(LANGUAGE_DEFS), build-$(var)-semantics)
+
+.PHONY: test-dist
+test-dist: $(DIST_LANGUAGE_DEFS)
+	@echo "Test-dist"
+
+.PHONY: $(DIST_LANGUAGE_DEFS)
+$(DIST_LANGUAGE_DEFS): dist-%: build-%
+	@echo "Distributing $@"
+
+.PHONY: $(BUILD_LANGUAGE_DEFS)
+$(BUILD_LANGUAGE_DEFS):
+	@echo "Building $@"
+
+KOMPILED_DEFINITION_TIMESTAMPS = $(addprefix semantics/.build/x86-gcc-limited-libc/,$(LANGUAGE_VARIANTS_TIMESTAMPS)) 
+DIST_DEFINITION_TIMESTAMPS = $(addprefix dist/profiles/$(PROFILE)/,$(LANGUAGE_VARIANTS_TIMESTAMPS))
+
+.PHONY: distribute-all
+distribute-all: $(indent) | $(DIST_DEFINITION_TIMESTAMPS)
+
+#$(info kdt: $(KOMPILED_DEFINITION_TIMESTAMPS))
+#$(info ddt: $(DIST_DEFINITION_TIMESTAMPS))
+
+# Build naming scheme:
+# $(BUILDDIR)/$(PROFILE)/$(DEFINITION)/$(VARIANT)/$(DEFINITION)-kompiled/timestamp
+# Dist naming scheme:
+# dist/profiles/$(PROFILE)/$(DEFINITION)-kompiled/$(VARIANT)/$(DEFINITION)-kompiled/timestamp
+
+#dist/profiles/x86-gcc-limited-libc/c-cpp-execution/basic/c-cpp-execution-kompiled/timestamp:
+dist/profiles/%/timestamp: semantics/.build/%/timestamp
+	@echo "$@"
+
+semantics/.build/%/timestamp:
+	@echo "Entering './semantics' to build $@"
+	@$(MAKE) -s -C ./semantics $(@:semantics/%=%) 2>&1 | $(indent)
+	@echo "Need to build $@"
+
+#.PHONY: $(SOME_SEMANTICS)
+#$(SOME_SEMANTICS): dependencies
+
+
+
+$(call timestamp_of,c-cpp): dist-c-cpp-execution-semantics $(DIST_PROFILES)/$(PROFILE)
+	@echo "Building $@"
 	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
 		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(call timestamp_of,c-cpp-linking): linking-semantics $(DIST_PROFILES)/$(PROFILE)
-	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(PROFILE)
-	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
-
-$(call timestamp_of,c-translation): translation-semantics $(DIST_PROFILES)/$(PROFILE)
-	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
-	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
-
-$(call timestamp_of,cpp-translation): cpp-semantics $(DIST_PROFILES)/$(PROFILE)
-	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
-	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
-
+#$(call timestamp_of,c-cpp): dist-c-cpp-execution-semantics $(DIST_PROFILES)/$(PROFILE)
+#	@echo "Building $@"
+#	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-kompiled $(DIST_PROFILES)/$(PROFILE)
+#	@$(foreach d,$(SUBPROFILE_DIRS), \
+#		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+#
+#$(call timestamp_of,c-cpp-linking): linking-semantics $(DIST_PROFILES)/$(PROFILE)
+#	@echo "Building $@"
+#	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(PROFILE)
+#	@$(foreach d,$(SUBPROFILE_DIRS), \
+#		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+#
+#$(call timestamp_of,c-translation): dist-c-translation-semantics $(DIST_PROFILES)/$(PROFILE)
+#	@echo "Building $@"
+#	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
+#	@$(foreach d,$(SUBPROFILE_DIRS), \
+#		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+#
+#$(call timestamp_of,cpp-translation): dist-cpp-translation-semantics $(DIST_PROFILES)/$(PROFILE)
+#	@echo "Building $@"
+#	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
+#	@$(foreach d,$(SUBPROFILE_DIRS), \
+#		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
+#
 $(LIBSTDCXX_SO): $(call timestamp_of,c-cpp-linking) $(call timestamp_of,cpp-translation) $(wildcard $(PROFILE_DIR)/compiler-src/*.C) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/compiler-src/*)) $(DIST_PROFILES)/$(PROFILE)
 	@echo "$(PROFILE): Translating the C++ standard library..."
 	@cd $(PROFILE_DIR)/compiler-src && $(shell pwd)/dist/kcc --use-profile $(PROFILE) -shared -o $(shell pwd)/$(LIBSTDCXX_SO) *.C $(KCCFLAGS) -I .
@@ -164,7 +247,7 @@ kcc-sanity-check: stdlibs
 	@rm -f dist/testProgram.out
 	@echo "Done."
 
-scripts/cparser: $(indent)
+parser/cparser: $(indent)
 	@echo "Building the C parser..."
 	@$(MAKE) -s -C parser 2>&1 | $(indent)
 
@@ -181,12 +264,6 @@ clang-tools/Makefile:
 scripts/cdecl-%/src/cdecl: scripts/cdecl-%.tar.gz
 	@echo "Building cdecl"
 	@flock -w 120 $< sh -c 'cd scripts && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
-
-SOME_SEMANTICS = cpp-semantics linking-semantics translation-semantics execution-semantics all-semantics
-.PHONY: $(SOME_SEMANTICS)
-$(SOME_SEMANTICS): dependencies
-	@echo "Entering './semantics' to build $@"
-	@$(MAKE) -s -C ./semantics $(@:%-semantics=%) 2>&1 | $(indent)
 
 .PHONY: semantics
 semantics: all-semantics
