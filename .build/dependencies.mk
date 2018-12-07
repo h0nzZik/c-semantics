@@ -2,7 +2,7 @@ include $(dir $(lastword $(MAKEFILE_LIST)))/inc.mk
 
 
 .PHONY: dependencies
-dependencies: have-kompile have-ocaml have-gcc have-perl
+dependencies: have-kompile have-ocaml have-gcc have-perl indenter
 
 .PHONY: have-kompile
 # We do not necessarily need to have $(K_BIN)/kompile.
@@ -25,5 +25,6 @@ have-gcc:
 have-perl:
 	@perl $(SCRIPTS_DIR)/checkForModules.pl
 
-
+.PHONY: stage0
+stage0: indenter
 

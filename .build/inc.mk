@@ -22,5 +22,6 @@ export KOMPILE = $(K_BIN)/kompile
 export KDEP = $(K_BIN)/kdep
 
 
+indent = $(SCRIPTS_DIR)/indenter
 
 #$(info kompile: $(KOMPILE))

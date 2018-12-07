@@ -8,22 +8,22 @@ KCCFLAGS = -D_POSIX_C_SOURCE=200809 -nodefaultlibs -fno-native-compilation
 CFLAGS = -std=gnu11 -Wall -Wextra -Werror -pedantic
 
 FILES_TO_DIST = \
-	$(SCRIPTS_DIR)/kcc \
-	$(SCRIPTS_DIR)/k++ \
-	$(SCRIPTS_DIR)/kranlib \
-	$(SCRIPTS_DIR)/merge-kcc-obj \
-	$(SCRIPTS_DIR)/split-kcc-obj \
-	$(SCRIPTS_DIR)/make-trampolines \
-	$(SCRIPTS_DIR)/make-symbols \
-	$(SCRIPTS_DIR)/gccsymdump \
-	$(SCRIPTS_DIR)/globalize-syms \
-	$(SCRIPTS_DIR)/ignored-flags \
-	$(SCRIPTS_DIR)/program-runner \
-	$(SCRIPTS_DIR)/histogram-csv \
-	$(CPARSER_DIR)/cparser \
-	$(CLANGTOOLS_DIR)/clang-kast \
-	$(CLANGTOOLS_DIR)/call-sites \
-	$(SCRIPTS_DIR)/cdecl-3.6/src/cdecl \
+	scripts/kcc \
+	scripts/k++ \
+	scripts/kranlib \
+	scripts/merge-kcc-obj \
+	scripts/split-kcc-obj \
+	scripts/make-trampolines \
+	scripts/make-symbols \
+	scripts/gccsymdump \
+	scripts/globalize-syms \
+	scripts/ignored-flags \
+	scripts/program-runner \
+	scripts/histogram-csv \
+	scripts/cdecl-3.6/src/cdecl \
+	scripts/cparser \
+	scripts/clang-kast \
+	scripts/call-sites \
 	LICENSE \
 	licenses
 
@@ -32,16 +32,16 @@ PROFILE_FILE_DEPS = $(foreach f, $(PROFILE_FILES), $(PROFILE_DIR)/$(f))
 SUBPROFILE_FILE_DEPS = $(foreach d, $(SUBPROFILE_DIRS), $(foreach f, $(PROFILE_FILES), $(d)/$(f)))
 
 PERL_MODULES = \
-	$(SCRIPTS_DIR)/RV_Kcc/Opts.pm \
-	$(SCRIPTS_DIR)/RV_Kcc/Files.pm \
-	$(SCRIPTS_DIR)/RV_Kcc/Shell.pm
+	scripts/RV_Kcc/Opts.pm \
+	scripts/RV_Kcc/Files.pm \
+	scripts/RV_Kcc/Shell.pm
 
-DIST_PROFILES = $(DIST_DIR)/profiles
+DIST_PROFILES = dist/profiles
 LIBC_SO = $(DIST_PROFILES)/$(PROFILE)/lib/libc.so
 LIBSTDCXX_SO = $(DIST_PROFILES)/$(PROFILE)/lib/libstdc++.so
 
 define timestamp_of
-    $(DIST_DIR)/profiles/$(PROFILE)/$(1)-kompiled/$(1)-kompiled/timestamp
+    dist/profiles/$(PROFILE)/$(1)-kompiled/$(1)-kompiled/timestamp
 endef
 
 .PHONY: default
@@ -54,41 +54,41 @@ help:
 	@echo "  prune"
 
 
-$(DIST_DIR)/writelong: $(SCRIPTS_DIR)/writelong.c
+dist/writelong: scripts/writelong.c
 	@mkdir -p $(dir $@)
 	@gcc $(CFLAGS) $< -o $@
 
-$(DIST_DIR)/RV_Kcc/Opts.pm: $(SCRIPTS_DIR)/RV_Kcc/Opts.pm $(SCRIPTS_DIR)/getopt.pl
+dist/RV_Kcc/Opts.pm: scripts/RV_Kcc/Opts.pm scripts/getopt.pl
 	@echo Building "$@"
 	@mkdir -p $(dir $@)
-	@cat $< | perl $(SCRIPTS_DIR)/getopt.pl > $@
+	@cat $< | perl scripts/getopt.pl > $@
 
 
-$(DIST_DIR)/kcc: $(DIST_DIR)/RV_Kcc/Opts.pm $(PERL_MODULES) $(DIST_DIR)/writelong $(FILES_TO_DIST) 
+dist/kcc: dist/RV_Kcc/Opts.pm $(PERL_MODULES) dist/writelong $(FILES_TO_DIST) 
 	@echo Building 'kcc'
-	@mkdir -p $(DIST_DIR)/RV_Kcc
-	cp -RLp $(FILES_TO_DIST) $(DIST_DIR)
-	cp -RLp $(PERL_MODULES) $(DIST_DIR)/RV_Kcc
-	cp -p $(DIST_DIR)/kcc $(DIST_DIR)/kclang
+	@mkdir -p dist/RV_Kcc
+	cp -RLp $(FILES_TO_DIST) dist
+	cp -RLp $(PERL_MODULES) dist/RV_Kcc
+	cp -p dist/kcc dist/kclang
 
 .PHONY: pack
-pack: $(DIST_DIR)/kcc
+pack: dist/kcc
 	@echo Packing 'kcc'
-	@cd $(DIST_DIR) && fatpack trace kcc
-	@cd $(DIST_DIR) && fatpack packlists-for `cat fatpacker.trace` >packlists
-	@cat $(DIST_DIR)/packlists
-	@cd $(DIST_DIR) && fatpack tree `cat packlists`
-	@cp -rf $(DIST_DIR)/RV_Kcc $(DIST_DIR)/fatlib
-	@cd $(DIST_DIR) && fatpack file kcc > kcc.packed
-	@chmod --reference=$(DIST_DIR)/kcc $(DIST_DIR)/kcc.packed
-	@mv -f $(DIST_DIR)/kcc.packed $(DIST_DIR)/kcc
-	@cp -pf $(DIST_DIR)/kcc $(DIST_DIR)/kclang
-	@rm -rf $(DIST_DIR)/fatlib $(DIST_DIR)/RV_Kcc $(DIST_DIR)/packlists $(DIST_DIR)/fatpacker.trace
+	@cd dist && fatpack trace kcc
+	@cd dist && fatpack packlists-for `cat fatpacker.trace` >packlists
+	@cat dist/packlists
+	@cd dist && fatpack tree `cat packlists`
+	@cp -rf dist/RV_Kcc dist/fatlib
+	@cd dist && fatpack file kcc > kcc.packed
+	@chmod --reference=dist/kcc dist/kcc.packed
+	@mv -f dist/kcc.packed dist/kcc
+	@cp -pf dist/kcc dist/kclang
+	@rm -rf dist/fatlib dist/RV_Kcc dist/packlists dist/fatpacker.trace
 
-$(DIST_PROFILES)/$(PROFILE): $(DIST_DIR)/kcc $(PROFILE_FILE_DEPS) $(SUBPROFILE_FILE_DEPS) $(PROFILE)-native | dependencies
+$(DIST_PROFILES)/$(PROFILE): dist/kcc $(PROFILE_FILE_DEPS) $(SUBPROFILE_FILE_DEPS) $(PROFILE)-native | dependencies
 	@mkdir -p $@/lib
-	@printf "%s" $(PROFILE) > $(DIST_DIR)/current-profile
-	@printf "%s" $(PROFILE) > $(DIST_DIR)/default-profile
+	@printf "%s" $(PROFILE) > dist/current-profile
+	@printf "%s" $(PROFILE) > dist/default-profile
 	@-$(foreach f, $(PROFILE_FILE_DEPS), \
 		cp -RLp $(f) $(DIST_PROFILES)/$(PROFILE);)
 	@$(foreach d, $(SUBPROFILE_DIRS), \
@@ -120,17 +120,17 @@ $(call timestamp_of,cpp-translation): cpp-semantics $(DIST_PROFILES)/$(PROFILE)
 
 $(LIBSTDCXX_SO): $(call timestamp_of,c-cpp-linking) $(call timestamp_of,cpp-translation) $(wildcard $(PROFILE_DIR)/compiler-src/*.C) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/compiler-src/*)) $(DIST_PROFILES)/$(PROFILE)
 	@echo "$(PROFILE): Translating the C++ standard library..."
-	@cd $(PROFILE_DIR)/compiler-src && $(shell pwd)/$(DIST_DIR)/kcc --use-profile $(PROFILE) -shared -o $(shell pwd)/$(LIBSTDCXX_SO) *.C $(KCCFLAGS) -I .
+	@cd $(PROFILE_DIR)/compiler-src && $(shell pwd)/dist/kcc --use-profile $(PROFILE) -shared -o $(shell pwd)/$(LIBSTDCXX_SO) *.C $(KCCFLAGS) -I .
 	@$(foreach d,$(SUBPROFILE_DIRS), \
 		cd $(d)/compiler-src && \
-		$(shell pwd)/$(DIST_DIR)/kcc --use-profile $(shell basename $(d)) -shared -o $(shell pwd)/$(DIST_PROFILES)/$(shell basename $(d))/lib/libstdc++.so *.C $(KCCFLAGS) -I .;)
+		$(shell pwd)/dist/kcc --use-profile $(shell basename $(d)) -shared -o $(shell pwd)/$(DIST_PROFILES)/$(shell basename $(d))/lib/libstdc++.so *.C $(KCCFLAGS) -I .;)
 	@echo "$(PROFILE): Done translating the C++ standard library."
 
 $(LIBC_SO): $(call timestamp_of,c-cpp-linking) $(call timestamp_of,c-translation) $(wildcard $(PROFILE_DIR)/src/*.c) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/src/*.c)) $(DIST_PROFILES)/$(PROFILE)
 	@echo "$(PROFILE): Translating the C standard library..."
-	@cd $(PROFILE_DIR)/src && $(shell pwd)/$(DIST_DIR)/kcc --use-profile $(PROFILE) -shared -o $(shell pwd)/$(LIBC_SO) *.c $(KCCFLAGS) -I .
+	@cd $(PROFILE_DIR)/src && $(shell pwd)/dist/kcc --use-profile $(PROFILE) -shared -o $(shell pwd)/$(LIBC_SO) *.c $(KCCFLAGS) -I .
 	@$(foreach d,$(SUBPROFILE_DIRS), \
-		cd $(d)/src && $(shell pwd)/$(DIST_DIR)/kcc --use-profile $(shell basename $(d)) -shared -o $(shell pwd)/$(DIST_PROFILES)/$(shell basename $(d))/lib/libc.so *.c $(KCCFLAGS) -I .)
+		cd $(d)/src && $(shell pwd)/dist/kcc --use-profile $(shell basename $(d)) -shared -o $(shell pwd)/$(DIST_PROFILES)/$(shell basename $(d))/lib/libc.so *.c $(KCCFLAGS) -I .)
 	@echo "$(PROFILE): Done translating the C standard library."
 
 .PHONY: $(PROFILE)-native
@@ -155,37 +155,38 @@ stdlibs: $(LIBC_SO) $(LIBSTDCXX_SO) $(call timestamp_of,c-cpp)
 .PHONY: kcc-sanity-check
 kcc-sanity-check: stdlibs
 	@echo "Testing kcc..."
-	printf "#include <stdio.h>\nint main(void) {printf(\"x\"); return 42;}\n" | $(DIST_DIR)/kcc --use-profile $(PROFILE) -x c - -o $(DIST_DIR)/testProgram.compiled
-	$(DIST_DIR)/testProgram.compiled 2> /dev/null > $(DIST_DIR)/testProgram.out; test $$? -eq 42
-	grep x $(DIST_DIR)/testProgram.out > /dev/null
+	@printf "#include <stdio.h>\nint main(void) {printf(\"x\"); return 42;}\n" | dist/kcc --use-profile $(PROFILE) -x c - -o dist/testProgram.compiled
+	dist/testProgram.compiled 2> /dev/null > dist/testProgram.out; test $$? -eq 42
+	@grep x dist/testProgram.out > /dev/null
 	@echo "Done."
 	@echo "Cleaning up..."
-	@rm -f $(DIST_DIR)/testProgram.compiled
-	@rm -f $(DIST_DIR)/testProgram.out
+	@rm -f dist/testProgram.compiled
+	@rm -f dist/testProgram.out
 	@echo "Done."
 
-.phony: parser/cparser
-parser/cparser:
+parser/cparser: indenter
 	@echo "Building the C parser..."
-	@$(MAKE) -C $(CPARSER_DIR)
+	@$(MAKE) --no-print-directory -C $(CPARSER_DIR) | $(indenter)
 
-$(CLANGTOOLS_DIR)/call-sites: $(CLANGTOOLS_DIR)/clang-kast
+clang-tools/call-sites: clang-tools/clang-kast
 
-.PHONY: $(CLANGTOOLS_DIR)/clang-kast
-$(CLANGTOOLS_DIR)/clang-kast: $(CLANGTOOLS_DIR)/Makefile
+.PHONY: clang-tools/clang-kast
+clang-tools/clang-kast: clang-tools/Makefile
 	@echo "Building the C++ parser..."
-	@$(MAKE) -C $(CLANGTOOLS_DIR)
+	@$(MAKE) --no-print-directory -C clang-tools | $(indenter)
 
-$(CLANGTOOLS_DIR)/Makefile:
-	@cd $(CLANGTOOLS_DIR) && cmake .
+clang-tools/Makefile:
+	@cd clang-tools && cmake . | $(indent)
 
-$(SCRIPTS_DIR)/cdecl-%/src/cdecl: $(SCRIPTS_DIR)/cdecl-%.tar.gz
-	flock -w 120 $< sh -c 'cd scripts && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
+scripts/cdecl-%/src/cdecl: scripts/cdecl-%.tar.gz
+	@echo "Building cdecl"
+	@flock -w 120 $< sh -c 'cd scripts && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
 
 SOME_SEMANTICS = cpp-semantics linking-semantics translation-semantics execution-semantics all-semantics
 .PHONY: $(SOME_SEMANTICS)
 $(SOME_SEMANTICS): dependencies
-	@$(MAKE) -C $(SEMANTICS_DIR) $(@:%-semantics=%)
+	@echo "Entering './semantics' to build $@"
+	@$(MAKE) --no-print-directory -C ./semantics $(@:%-semantics=%) | $(indent)
 
 .PHONY: semantics
 semantics: all-semantics
@@ -199,7 +200,7 @@ FAIL_COMPILE_TESTS_DIR = tests/unit-fail-compilation
 .PHONY: test-pass test-fail test-fail-compilation
 test-%: kcc-sanity-check
 	$(eval DIR := tests/unit-$(@:test-%=%))
-	@$(MAKE) -C $(DIR) comparison
+	@$(MAKE) --no-print-directory -C $(DIR) comparison | $(indent)
 
 
 # TODO Ensure nobody uses these aliases
@@ -213,13 +214,14 @@ fail-compile: test-fail-compilation
 # TODO remove this irregularity.
 .PHONY: os-check
 os-check: kcc-sanity-check
-	@$(MAKE) -C $(PASS_TESTS_DIR) os-comparison
+	@$(MAKE) --no-print-directory -C $(PASS_TESTS_DIR) os-comparison | $(indent)
 
 SUBDIRECTORIES = parser clang-tools semantics tests
 CLEAN_TARGETS = $(foreach var, $(SUBDIRECTORIES), clean-$(var))
 
 .PHONY: $(CLEAN_TARGETS)
 $(CLEAN_TARGETS):
+	@echo 'Cleaning $@'
 	$(eval DIR := $(@:clean-%=%))
 	@if [ -f "$(DIR)/Makefile" ]; then $(MAKE) -C $(DIR) clean; fi
 
@@ -228,7 +230,7 @@ $(CLEAN_TARGETS):
 clean: $(CLEAN_TARGETS)
 	@#TODO this should be in dependencies.mk
 	-rm -f $(K_SUBMODULE_DIR)/make.timestamp
-	-rm -rf $(DIST_DIR)
+	-rm -rf dist
 	-rm -f ./*.tmp ./*.log ./*.cil ./*-gen.maude ./*.gen.maude ./*.pre.gen ./*.prepre.gen ./a.out ./*.kdump ./*.pre.pre 
 
 include $(DEPENDENCIES_DIR)/dependencies.mk
@@ -238,3 +240,14 @@ include $(DEPENDENCIES_DIR)/dependencies.mk
 .PHONY: prune
 prune: clean
 	@echo 'Not implemented yet, but should delete all dependencies'
+
+#TODO we shold try to download Clang
+#TODO do not rely on Make when using CMake. Use cmake --build or something like that.
+
+
+.PHONY: indenter
+indenter: $(SCRIPTS_DIR)/indenter
+
+$(SCRIPTS_DIR)/indenter: $(SCRIPTS_DIR)/indenter.c
+	@echo "Building indenter"
+	@gcc -std=c99 $< -o $@
