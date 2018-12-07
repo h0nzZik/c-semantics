@@ -67,9 +67,6 @@ endif
 # .build/$(PROFILE)/$(DEFINITION)/$(VARIANT)/$(DEFINITION)-kompiled/timestamp
 # .build/$(PROFILE)/$(DEFINITION)/$(VARIANT)/depend.mk
 
-
-#TODO reuse existing for 'nd' and 'ndthread' variants
-#.depend-%--basic:
 .build/%/depend.mk:
 	$(call setCurrentVars,$@)
 	$(eval CURRENT_PROFILE_DIR := $(PROFILES_DIR)/$(CURRENT_PROFILE_NAME))
@@ -87,14 +84,6 @@ endif
 	@mv $(TMP) $@
 
 # Nondeterministic and thread version have the same dependencies.
-# They difer only in rules
-
-.depend-%--nd: .depend-%--basic
-	@echo "Generating $@"
-	@cp $< $@
-
-.depend-%--ndthread: .depend-%--basic
-	@echo "Generating $@"
-	@cp $< $@
-
+# They difer only in rules.
+# TODO: optimize generation of nonbasic variants.
 

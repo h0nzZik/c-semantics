@@ -3,9 +3,7 @@ include $(dir $(lastword $(MAKEFILE_LIST)))/.build/inc.mk
 export PROFILE_DIR = $(shell pwd)/profiles/x86-gcc-limited-libc
 export PROFILE = $(shell basename $(PROFILE_DIR))
 export SUBPROFILE_DIRS =
-TESTS_DIR = tests
 PARSER = $(CPARSER_DIR)/cparser
-DIST_DIR = dist
 KCCFLAGS = -D_POSIX_C_SOURCE=200809 -nodefaultlibs -fno-native-compilation
 CFLAGS = -std=gnu -Wall -Wextra -Werror -pedantic
 
@@ -49,48 +47,36 @@ endef
 .PHONY: default
 default: kcc-sanity-check
 
-.PHONY: deps
-deps: $(KOMPILE)
-
-$(K_BIN)/kompile:
-	@echo "== submodule: $@"
-	git submodule update --init -- $(K_SUBMODULE)
-	cd $(K_SUBMODULE) \
-		&& mvn package -q -DskipTests -U
-
-.PHONY: check-vars
-check-vars: deps
-	@if ! ocaml -version > /dev/null 2>&1; then echo "ERROR: You don't seem to have ocaml installed.  You need to install this before continuing.  Please see INSTALL.md for more information."; false; fi
-	@if ! gcc -v > /dev/null 2>&1; then if ! clang -v > /dev/null 2>&1; then echo "ERROR: You don't seem to have gcc or clang installed.  You need to install this before continuing.  Please see INSTALL.md for more information."; false; fi fi
-	@perl $(SCRIPTS_DIR)/checkForModules.pl
-
 $(DIST_DIR)/writelong: $(SCRIPTS_DIR)/writelong.c
-	@mkdir -p $(DIST_DIR)
-	@gcc $(CFLAGS) $(SCRIPTS_DIR)/writelong.c -o $(DIST_DIR)/writelong
+	@mkdir -p $(dir $@)
+	@gcc $(CFLAGS) $< -o $@
 
 $(DIST_DIR)/kcc: $(SCRIPTS_DIR)/getopt.pl $(PERL_MODULES) $(DIST_DIR)/writelong $(FILES_TO_DIST)
-	mkdir -p $(DIST_DIR)/RV_Kcc
-	cp -RLp $(FILES_TO_DIST) $(DIST_DIR)
-	cp -RLp $(PERL_MODULES) $(DIST_DIR)/RV_Kcc
-	rm -f $(DIST_DIR)/RV_Kcc/Opts.pm
-	cat $(SCRIPTS_DIR)/RV_Kcc/Opts.pm | perl $(SCRIPTS_DIR)/getopt.pl > $(DIST_DIR)/RV_Kcc/Opts.pm
-	cp -p $(DIST_DIR)/kcc $(DIST_DIR)/kclang
+	@echo Building 'kcc'
+	@mkdir -p $(DIST_DIR)/RV_Kcc
+	@cp -RLp $(FILES_TO_DIST) $(DIST_DIR)
+	@cp -RLp $(PERL_MODULES) $(DIST_DIR)/RV_Kcc
+	@rm -f $(DIST_DIR)/RV_Kcc/Opts.pm
+	@# TODO we can have a target for this
+	@cat $(SCRIPTS_DIR)/RV_Kcc/Opts.pm | perl $(SCRIPTS_DIR)/getopt.pl > $(DIST_DIR)/RV_Kcc/Opts.pm
+	@cp -p $(DIST_DIR)/kcc $(DIST_DIR)/kclang
 
 .PHONY: pack
 pack: $(DIST_DIR)/kcc
-	cd $(DIST_DIR) && fatpack trace kcc
-	cd $(DIST_DIR) && fatpack packlists-for `cat fatpacker.trace` >packlists
-	cat $(DIST_DIR)/packlists
-	cd $(DIST_DIR) && fatpack tree `cat packlists`
-	cp -rf $(DIST_DIR)/RV_Kcc $(DIST_DIR)/fatlib
-	cd $(DIST_DIR) && fatpack file kcc > kcc.packed
-	chmod --reference=$(DIST_DIR)/kcc $(DIST_DIR)/kcc.packed
-	mv -f $(DIST_DIR)/kcc.packed $(DIST_DIR)/kcc
-	cp -pf $(DIST_DIR)/kcc $(DIST_DIR)/kclang
-	rm -rf $(DIST_DIR)/fatlib $(DIST_DIR)/RV_Kcc $(DIST_DIR)/packlists $(DIST_DIR)/fatpacker.trace
+	@echo Packing 'kcc'
+	@cd $(DIST_DIR) && fatpack trace kcc
+	@cd $(DIST_DIR) && fatpack packlists-for `cat fatpacker.trace` >packlists
+	@cat $(DIST_DIR)/packlists
+	@cd $(DIST_DIR) && fatpack tree `cat packlists`
+	@cp -rf $(DIST_DIR)/RV_Kcc $(DIST_DIR)/fatlib
+	@cd $(DIST_DIR) && fatpack file kcc > kcc.packed
+	@chmod --reference=$(DIST_DIR)/kcc $(DIST_DIR)/kcc.packed
+	@mv -f $(DIST_DIR)/kcc.packed $(DIST_DIR)/kcc
+	@cp -pf $(DIST_DIR)/kcc $(DIST_DIR)/kclang
+	@rm -rf $(DIST_DIR)/fatlib $(DIST_DIR)/RV_Kcc $(DIST_DIR)/packlists $(DIST_DIR)/fatpacker.trace
 
-$(DIST_PROFILES)/$(PROFILE): $(DIST_DIR)/kcc $(PROFILE_FILE_DEPS) $(SUBPROFILE_FILE_DEPS) $(PROFILE)-native | check-vars
-	@mkdir -p $(DIST_PROFILES)/$(PROFILE)/lib
+$(DIST_PROFILES)/$(PROFILE): $(DIST_DIR)/kcc $(PROFILE_FILE_DEPS) $(SUBPROFILE_FILE_DEPS) $(PROFILE)-native | dependencies
+	@mkdir -p $@/lib
 	@printf "%s" $(PROFILE) > $(DIST_DIR)/current-profile
 	@printf "%s" $(PROFILE) > $(DIST_DIR)/default-profile
 	@-$(foreach f, $(PROFILE_FILE_DEPS), \
@@ -188,7 +174,7 @@ $(SCRIPTS_DIR)/cdecl-%/src/cdecl: $(SCRIPTS_DIR)/cdecl-%.tar.gz
 
 SOME_SEMANTICS = cpp-semantics linking-semantics translation-semantics execution-semantics all-semantics
 .PHONY: $(SOME_SEMANTICS)
-$(SOME_SEMANTICS): check-vars
+$(SOME_SEMANTICS): dependencies
 	@$(MAKE) -C $(SEMANTICS_DIR) $(@:%-semantics=%)
 
 .PHONY: semantics
@@ -230,6 +216,9 @@ $(CLEAN_TARGETS):
 #
 .PHONY: clean
 clean: $(CLEAN_TARGETS)
-	-rm -f $(K_SUBMODULE)/make.timestamp
+	@#TODO this should be in dependencies.mk
+	-rm -f $(K_SUBMODULE_DIR)/make.timestamp
 	-rm -rf $(DIST_DIR)
 	-rm -f ./*.tmp ./*.log ./*.cil ./*-gen.maude ./*.gen.maude ./*.pre.gen ./*.prepre.gen ./a.out ./*.kdump ./*.pre.pre 
+
+include $(DEPENDENCIES_DIR)/dependencies.mk

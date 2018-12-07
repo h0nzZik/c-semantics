@@ -43,7 +43,7 @@ KOMPILE_DEFAULT_FLAGS = --backend ocaml \
 	@#echo 'CURRENT_PROFILE_DIR: $(CURRENT_PROFILE_DIR)'
 	@#echo 'Kompiling $(CURRENT_DEFINITION)/$(CURRENT_VARIANT)'
 
-	$(KOMPILE) \
+	$(KOMPILE) -O2 \
 		$(KOMPILE_FLAGS) \
         	$(KOMPILE_DEFAULT_FLAGS) \
 		-I $(PROFILE_DIR)/semantics \
