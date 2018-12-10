@@ -1,7 +1,7 @@
-KOMPILE_DEFAULT_FLAGS=--backend ocaml --non-strict --smt none
-CPP_KOMPILE_FLAGS=--opaque-klabels c-translation.k
-EXECUTION_KOMPILE_FLAGS=--opaque-klabels cpp-translation.k --no-expand-macros --ocaml-serialize-config '$$PGM' --ocaml-dump-exit-code 139
-KDEP_DEFAULT_FLAGS=
+KOMPILE_DEFAULT_FLAGS := --backend ocaml --non-strict --smt none
+CPP_KOMPILE_FLAGS := --opaque-klabels c-translation.k
+EXECUTION_KOMPILE_FLAGS := --opaque-klabels cpp-translation.k --no-expand-macros --ocaml-serialize-config '$$PGM' --ocaml-dump-exit-code 139
+KDEP_DEFAULT_FLAGS :=
 
 .PHONY: default all fast nd thread clean .depend-$(PROFILE)-c-translation .depend-$(PROFILE)-c-cpp-execution .depend-$(PROFILE)-c-cpp-linking .depend-$(PROFILE)-nd .depend-$(PROFILE)-nd-thread .depend-$(PROFILE)-cpp-translation
 
