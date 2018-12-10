@@ -69,6 +69,7 @@ clean:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_DEFAULT_FLAGS) -d ".build/$(PROFILE)/c-cpp-execution-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- c-cpp-execution.k > $(TMP)
 	mv $(TMP) $@
+
 .depend-$(PROFILE)-nd:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) -d ".build/$(PROFILE)/c11-nd-kompiled" -I $(PROFILE_DIR)/semantics -I $(PROFILE_DIR)/semantics/c -I $(PROFILE_DIR)/semantics/cpp -- c-cpp-execution.k > $(TMP)

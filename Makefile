@@ -58,7 +58,7 @@ define timestamp_of
     $(DIST_PROFILES)/$(PROFILE)/$(1)-kompiled/$(1)-kompiled/timestamp
 endef
 
-.PHONY: default check-vars semantics clean stdlibs deps cpp-semantics translation-semantics execution-semantics test-build pass fail fail-compile parser/cparser $(CPPPARSER_DIR)/clang-kast $(PROFILE)-native
+.PHONY: default check-vars semantics clean stdlibs deps cpp-translation-semantics c-translation-semantics c-cpp-execution-semantics test-build pass fail fail-compile parser/cparser $(CPPPARSER_DIR)/clang-kast $(PROFILE)-native
 
 default: test-build
 
@@ -113,22 +113,22 @@ $(DIST_PROFILES)/$(PROFILE): $(DIST_DIR)/kcc $(PROFILE_FILE_DEPS) $(SUBPROFILE_F
 	@-$(foreach d, $(SUBPROFILE_DIRS), \
 		cp -RLp $(DIST_PROFILES)/$(PROFILE)/native/* $(DIST_PROFILES)/$(shell basename $(d))/native;)
 
-$(call timestamp_of,c-cpp-execution): execution-semantics $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,c-cpp-execution): c-cpp-execution-semantics $(DIST_PROFILES)/$(PROFILE)
 	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-execution-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
 		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-execution-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(call timestamp_of,c-cpp-linking): linking-semantics $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,c-cpp-linking): c-cpp-linking-semantics $(DIST_PROFILES)/$(PROFILE)
 	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
 		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-cpp-linking-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(call timestamp_of,c-translation): translation-semantics $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,c-translation): c-translation-semantics $(DIST_PROFILES)/$(PROFILE)
 	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
 		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/c-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
 
-$(call timestamp_of,cpp-translation): cpp-semantics $(DIST_PROFILES)/$(PROFILE)
+$(call timestamp_of,cpp-translation): cpp-translation-semantics $(DIST_PROFILES)/$(PROFILE)
 	@cp -p -RL $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(PROFILE)
 	@$(foreach d,$(SUBPROFILE_DIRS), \
 		cp -RLp $(SEMANTICS_DIR)/.build/$(PROFILE)/cpp-translation-kompiled $(DIST_PROFILES)/$(shell basename $(d));)
