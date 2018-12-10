@@ -50,13 +50,23 @@ fast: translation execution linking
 
 fast-cpp: translation execution linking cpp
 
-translation: $(call timestamp_of,c-translation)
+.PHONY: build-c-translation
+build-c-translation: $(call timestamp_of,c-translation)
 
-linking: $(call timestamp_of,c-cpp-linking)
+.PHONY: build-c-cpp-linking
+build-c-cpp-linking: $(call timestamp_of,c-cpp-linking)
 
-cpp: $(call timestamp_of,cpp-translation)
+.PHONY: build-cpp-translation
+build-cpp-translation: $(call timestamp_of,cpp-translation)
 
-execution: $(call timestamp_of,c-cpp-execution)
+.PHONY: build-c-cpp-execution
+build-c-cpp-execution: $(call timestamp_of,c-cpp-execution)
+
+# Compatability layer
+linking: build-c-cpp-linking
+translation: build-c-translation
+cpp: build-cpp-translation
+execution: build-c-cpp-execution
 
 nd: $(call timestamp_of,c11-nd)
 
