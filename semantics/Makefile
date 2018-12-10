@@ -50,17 +50,9 @@ fast: translation execution linking
 
 fast-cpp: translation execution linking cpp
 
-.PHONY: build-c-translation
-build-c-translation: $(call timestamp_of,c-translation)
-
-.PHONY: build-c-cpp-linking
-build-c-cpp-linking: $(call timestamp_of,c-cpp-linking)
-
-.PHONY: build-cpp-translation
-build-cpp-translation: $(call timestamp_of,cpp-translation)
-
-.PHONY: build-c-cpp-execution
-build-c-cpp-execution: $(call timestamp_of,c-cpp-execution)
+BUILD_XYZ := $(addprefix build-,c-translation cpp-translation c-cpp-linking c-cpp-execution)
+.PHONY: $(BUILD_XYZ)
+$(BUILD_XYZ): build-%: $(call timestamp_of,%)
 
 # Compatability layer
 linking: build-c-cpp-linking
