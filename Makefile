@@ -192,17 +192,21 @@ $(CPPPARSER_DIR)/Makefile:
 $(SCRIPTS_DIR)/cdecl-%/src/cdecl: $(SCRIPTS_DIR)/cdecl-%.tar.gz
 	flock -w 120 $< sh -c 'cd scripts && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
 
-translation-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) translation
+# compatability targets
+# TODO: remove when not used in rv-match build
+.PHONY: translation-semantics
+translation-semantics: c-translation-semantics
+.PHONY: linking-semantics
+linking-semantics:c-cpp-linking-semantics
+.PHONY: execution-semantics
+execution-semantics: c-cpp-execution-semantics
+.PHONY: cpp-semantics
+cpp-semantics: cpp-translation-semantics
 
-linking-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) linking
-
-execution-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) execution
-
-cpp-semantics: check-vars
-	@$(MAKE) -C $(SEMANTICS_DIR) cpp
+XYZ_SEMANTICS := $(addsuffix -semantics,c-translation cpp-translation c-cpp-linking c-cpp-execution)
+.PHONY: $(XYZ_SEMANTICS)
+$(XYZ_SEMANTICS): check-vars
+	@$(MAKE) -C $(SEMANTICS_DIR) $@
 
 semantics: check-vars
 	@$(MAKE) -C $(SEMANTICS_DIR) all

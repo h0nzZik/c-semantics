@@ -46,17 +46,14 @@ $(call timestamp_of,c11-nd-thread):
 
 all: fast nd thread
 
-fast: translation execution linking
+fast: $(addsuffix -semantics,c-translation c-cpp-execution c-cpp-linking)
 
-fast-cpp: translation execution linking cpp
+fast-cpp: $(addsuffix -semantics,c-translation c-cpp-execution c-cpp-linking cpp-translation)
 
-translation: $(call timestamp_of,c-translation)
-
-linking: $(call timestamp_of,c-cpp-linking)
-
-cpp: $(call timestamp_of,cpp-translation)
-
-execution: $(call timestamp_of,c-cpp-execution)
+XYZ_SEMANTICS := $(addsuffix -semantics,c-translation cpp-translation c-cpp-linking c-cpp-execution)
+.PHONY: $(XYZ_SEMANTICS)
+.SECONDEXPANSION:
+$(XYZ_SEMANTICS): %-semantics: $(call timestamp_of,$$*)
 
 nd: $(call timestamp_of,c11-nd)
 
