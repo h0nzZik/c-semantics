@@ -1,7 +1,6 @@
 ifeq ($(strip $(BUILD_DIR)),)
   $(error Need BUILD_DIR)
 endif
-$(info BUILD_DIR: $(BUILD_DIR))
 B := $(BUILD_DIR)
 
 # We can use:
@@ -38,7 +37,6 @@ endif
 ifeq (,$(wildcard $(B)/deps.mk))
   CACHED_LLVM_PATH :=
 else
-  $(info reading cache)
   include $(B)/deps.mk
   CACHED_LLVM_PATH := $(LLVM_PATH)
 endif
@@ -54,7 +52,6 @@ else
   endif
 endif
 
-$(info DESIRED_LLVM_PATH: $(DESIRED_LLVM_PATH))
 
 .PHONY: default
 default: regenerate

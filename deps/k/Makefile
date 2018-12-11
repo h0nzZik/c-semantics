@@ -3,7 +3,6 @@ K_REPO := https://github.com/kframework/k.git
 ifeq ($(strip $(BUILD_DIR)),)
   $(error Need BUILD_DIR)
 endif
-$(info BUILD_DIR: $(BUILD_DIR))
 B := $(BUILD_DIR)
 
 # We can use:
@@ -33,7 +32,6 @@ endif
 ifeq (,$(wildcard $(B)/deps.mk))
   CACHED_K_BIN :=
 else
-  $(info reading cache)
   include $(B)/deps.mk
   CACHED_K_BIN := $(K_BIN)
 endif
@@ -50,8 +48,6 @@ else
   endif
 endif
 
-$(info USER_K_BIN: $(USER_K_BIN))
-$(info DESIRED_K_BIN: $(DESIRED_K_BIN))
 
 default: regenerate
 
