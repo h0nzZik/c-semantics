@@ -39,3 +39,8 @@ $(BTARGETS): $(BUILD_DIR)/%/timestamp:
 
 $(BUILD_DIR)/src/timestamp: $(BUILD_DIR)/deps/timestamp
 $(BUILD_DIR)/dist/timestamp: $(BUILD_DIR)/src/timestamp
+
+# TODO maybe it would be better if we didn't have ./deps directory,
+# but if every directory in ./src would have its ./deps subdirectory.
+# Or not? NO! We want to know in advance what is needed.
+# Maybe we may have an 'obtain-deps' and 'build-deps' target.
