@@ -4,7 +4,7 @@ endif
 
 B := $(BUILD_DIR)
 
-SRCS := clang-tools
+SRCS := clang-tools cparser
 
 .PHONY: default
 default: $(SRCS)
