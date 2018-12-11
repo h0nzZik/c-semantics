@@ -6,8 +6,10 @@ ifeq ($(strip $(BUILD_ROOT)),)
   $(error Need BUILD_ROOT)
 endif
 
-include $(BUILD_ROOT)/deps/deps.mk
+THIS_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
-#TODO use kdep.. eventually.
+PROFILE := x86-gcc-limited-libc
+PROFILE_DIR := $(realpath $(THIS_DIR)/../profiles)/$(PROFILE)
 
 default:
+	@echo $(PROFILE_DIR)
