@@ -1,3 +1,11 @@
+ifneq ($(MAKECMDGOALS),clean)
+  ifeq ($(strip $(BUILD_DIR)),)
+    $(error Need BUILD_DIR)
+  endif
+endif
+B := $(BUILD_DIR)
+
+
 # CIL_BASE = ../cil
 # CIL_PLATFORM ?= $(firstword $(shell ls $(CIL_BASE)/obj))
 # no warnings
