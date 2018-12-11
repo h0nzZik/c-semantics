@@ -11,24 +11,33 @@ B := $(BUILD_DIR)
 # * cached K ($(CACHED_K_BIN))
 # * custom build K $(OUR_K_BIN)
 
-USER_K_BIN := $(K_BIN)
-K_BIN :=
-ifneq (,$(strip $(USER_K_BIN)))
-  ifeq (,$(wildcard $(USER_K_BIN)/kompile))
-    $(info USER_K_BIN: $(USER_K_BIN))
-    $(error USER_K_BIN provided, but no 'kompile' detected)
-  endif
-endif
+# OUR_K_BIN
+# Our K
 
 OUR_K_BIN := $(B)/k/k-distribution/target/release/k/bin
+
+# USER_K_BIN
+# User-provided K
+
+ifneq (,$(strip $(K_BIN)))
+  ifeq (,$(wildcard $(K_BIN)/kompile))
+    $(info K_BIN: $(K_BIN))
+    $(error K_BIN provided, but no 'kompile' detected)
+  endif
+  USER_K_BIN := $(K_BIN)
+endif
+
+# CACHED_K_BIN
+# K from deps.mk
+
 ifeq (,$(wildcard $(B)/deps.mk))
   CACHED_K_BIN :=
 else
   $(info reading cache)
-  -include $(B)/deps.mk
+  include $(B)/deps.mk
   CACHED_K_BIN := $(K_BIN)
-  K_BIN :=
 endif
+
 
 #TODO use lists
 ifneq (,$(strip $(USER_K_BIN)))
@@ -56,11 +65,10 @@ $(OUR_K_BIN): $(B)/k
 
 .PHONY: regenerate
 regenerate: $(DESIRED_K_BIN)
-	@#$(eval K_BIN_REAL := $(realpath $(DESIRED_K_BIN)))
-	@#TODO should we test if we really have it?
-	@#$(K_BIN_REAL)/kompile --help
+	@#TODO should we test whether we really have it?
+	@#$(DESIRED_K_BIN)/kompile --help
 	@rm -f $(B)/deps.mk
-	@echo 'K_BIN := $(K_BIN_REAL)' >> $(B)/deps.mk
+	@echo 'K_BIN := $(DESIRED_K_BIN)' >> $(B)/deps.mk
 	@echo 'KOMPILE := $$(K_BIN)/kompile' >> $(B)/deps.mk
 	@echo 'KRUN := $$(K_BIN)/krun' >> $(B)/deps.mk
 	@echo 'KDEP := $$(K_BIN)/kdep' >> $(B)/deps.mk
