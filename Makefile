@@ -4,6 +4,8 @@ ifeq ($(strip $(BUILD_DIR)),)
   BUILD_DIR := $(C_SEMANTICS_DIR)/build
 endif
 
+export BUILD_ROOT := $(BUILD_DIR)
+
 .PHONY: default
 .default: help
 
