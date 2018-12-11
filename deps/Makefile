@@ -7,7 +7,7 @@ B := $(BUILD_DIR)
 DEPS := cdecl clang k perl
 
 .PHONY: default
-default: $(B)/deps.mk
+default: $(B)/deps.mk $(DEPS)
 
 .PHONY: $(DEPS)
 $(DEPS):
@@ -16,7 +16,7 @@ $(DEPS):
 	$(MAKE) -C $@ BUILD_DIR=$(B)/$@
 	@echo "</Building dependency '$@'>"
 
-$(B)/deps.mk: $(DEPS)
+$(B)/deps.mk:
 	@rm -f $@
 	@echo $(DEPS)
 	@cp deps.mk $@
