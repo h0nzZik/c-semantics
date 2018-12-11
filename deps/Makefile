@@ -6,6 +6,10 @@ B := $(BUILD_DIR)
 
 DEPS := cdecl clang k perl
 
+#TODO: ocaml, gcc/clang
+#let's deal with ocaml in the K directory, since we need it only
+#when working 
+
 .PHONY: default
 default: $(B)/deps.mk $(DEPS)
 
