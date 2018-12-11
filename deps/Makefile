@@ -11,7 +11,8 @@ default: $(DEPS)
 
 .PHONY: $(DEPS)
 $(DEPS):
-	@echo "Building dependency '$@'"
+	@echo "< Building dependency '$@'>"
 	mkdir -p $(B)/$@
 	$(MAKE) -C $@ BUILD_DIR=$(B)/$@
+	@echo "</Building dependency '$@'>"
 

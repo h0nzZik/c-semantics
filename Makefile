@@ -34,7 +34,7 @@ BTARGETS := $(addprefix $(BUILD_DIR)/,$(addsuffix /timestamp,$(PRTARGETS)))
 .PHONY: $(BTARGETS)
 $(BTARGETS): $(BUILD_DIR)/%/timestamp:
 	mkdir -p $(dir $@)
-	echo $(MAKE) -C $* BUILD_DIR=$(BUILD_DIR)/$*
+	$(MAKE) -C $* BUILD_DIR=$(BUILD_DIR)/$*
 	touch $@
 
 $(BUILD_DIR)/src/timestamp: $(BUILD_DIR)/deps/timestamp
