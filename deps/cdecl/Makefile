@@ -9,5 +9,6 @@ default: $(B)/cdecl-3.6/src/cdecl
 
 $(B)/cdecl-%/src/cdecl: cdecl-%.tar.gz
 	@echo "Building cdecl"
-	flock -w 120 $< sh -c 'tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
+	cp $< $(B)
+	flock -w 120 $(B)/$< sh -c 'cd $(B) && tar xvf cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline && $(MAKE)' || true
 
