@@ -4,6 +4,11 @@ endif
 $(info BUILD_DIR: $(BUILD_DIR))
 B := $(BUILD_DIR)
 
-default:
-	@echo "TODO Check perl stuff"
-	@touch $(B)/deps.mk
+.PHONY:
+default: $(B)/deps.mk
+
+$(B)/deps.mk: checkForModules.pl
+	@echo "Checking for Perl dependencies"
+	@perl $<
+	@touch $@
+
