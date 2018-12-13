@@ -1,11 +1,27 @@
 ifeq ($(strip $(BUILD_DIR)),)
   $(error Need BUILD_DIR)
 endif
+
+ifeq ($(strip $(BUILD_ROOT)),)
+  $(error Need BUILD_ROOT)
+endif
+
 B := $(BUILD_DIR)
 
-default: $(B)/kcc
+include $(BUILD_ROOT)/deps/deps.mk
+
+FATPACK := $(PERL_LOCAL)/bin/fatpack
+
+default: install-required-modules $(B)/kcc
 
 CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
+
+
+.PHONY: install-required-modules
+install-required-modules:
+	@echo $(CPANM)
+	@#$(CPANM) Getopt::Declare String::Escape String::ShellQuote App::FatPacker
+	@#echo We do not need XML::LibXML::Reader
 
 $(B)/writelong: writelong.c
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
@@ -23,10 +39,10 @@ PERL_MODULES = $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
 $(B)/kcc.trace: kcc $(PERL_MODULES) $(B)/RV_Kcc/Opts.pm
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
 	@echo Tracing...
-	fatpack trace --to=$@ $<
+	$(FATPACK) trace --to=$@ $<
 
 $(B)/kcc.packages: $(B)/kcc.trace
-	fatpack packlists-for `cat $<`
+	$(FATPACK) packlists-for `cat $<`
 
 $(B)/kcc: $(B)/writelong $(B)/kcc.packages
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
