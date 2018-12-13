@@ -1,10 +1,10 @@
-#TODO do not rely on GCC
-
 ifeq ($(strip $(BUILD_DIR)),)
   $(error Need BUILD_DIR)
 endif
+B := $(BUILD_DIR)
 
-B := $(BUILD_DIR)/kcc
+default:
+	@echo No way.
 
 CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
 

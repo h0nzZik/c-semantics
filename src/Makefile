@@ -4,7 +4,7 @@ endif
 
 B := $(BUILD_DIR)
 
-SRCS := clang-tools cparser native-server semantics
+SRCS := clang-tools cparser native-server kcc semantics
 
 .PHONY: default
 default: $(SRCS)
