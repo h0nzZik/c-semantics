@@ -9,6 +9,10 @@ SRCS := clang-tools cparser native-server semantics
 .PHONY: default
 default: $(SRCS)
 
+.PHONY: help
+help:
+	@echo Targets: $(SRCS)
+
 .PHONY: $(SRCS)
 $(SRCS):
 	@echo "< Building project '$@'>"

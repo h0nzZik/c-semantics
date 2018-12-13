@@ -21,28 +21,27 @@ help:
 	@echo '  BUILD_DIR := $(BUILD_DIR)'
 
 
-TARGETS := deps build dist
-.PHONY: $(TARGETS)
-deps: private-deps
-build: private-src
-dist: private-dist
+# Dependencies
+build: deps
+dist: build
 
-PRTARGETS := deps src dist
-PRTARGETS2 := $(addprefix private-,$(PRTARGETS))
-.PHONY: $(PRTARGETS2)
-$(PRTARGETS2): private-%: $(BUILD_DIR)/%/timestamp
+.PHONY: build
+build: build.default
 
-BTARGETS := $(addprefix $(BUILD_DIR)/,$(addsuffix /timestamp,$(PRTARGETS)))
-.PHONY: $(BTARGETS)
-$(BTARGETS): $(BUILD_DIR)/%/timestamp:
-	mkdir -p $(dir $@)
-	$(MAKE) -C $* BUILD_DIR=$(BUILD_DIR)/$*
-	touch $@
+build.%: FORCE
+	$(eval SUBTARGET := $(@:build.%=%))
+	@mkdir -p $(BUILD_DIR)/src
+	@$(MAKE) -C src $(SUBTARGET) BUILD_DIR=$(BUILD_DIR)/src
 
-$(BUILD_DIR)/src/timestamp: $(BUILD_DIR)/deps/timestamp
-$(BUILD_DIR)/dist/timestamp: $(BUILD_DIR)/src/timestamp
+.PHONY: deps dist
+deps dist: %: %.default
 
-# TODO maybe it would be better if we didn't have ./deps directory,
-# but if every directory in ./src would have its ./deps subdirectory.
-# Or not? NO! We want to know in advance what is needed.
-# Maybe we may have an 'obtain-deps' and 'build-deps' target.
+deps.% dist.%: FORCE
+	$(eval MAINTARGET := $(firstword $(subst ., ,$@)))
+	$(eval SUBTARGET := $(@:$(MAINTARGET).%=%))
+	@mkdir -p $(BUILD_DIR)/$(MAINTARGET)
+	@$(MAKE) -C $(MAINTARGET) $(SUBTARGET) BUILD_DIR=$(BUILD_DIR)/$(MAINTARGET)
+
+
+# see http://clarkgrubb.com/makefile-style-guide#phony-targets
+FORCE:
