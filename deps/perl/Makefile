@@ -21,8 +21,8 @@ $(CPANM):
 regenerate: $(CPANM)
 	@rm -f $(B)/deps.mk
 	@echo 'CPANM_EXECUTABLE := $(CPANM)' >> $(B)/deps.mk
-	@echo 'PERL_LOCAL := $(B)/local' >> $(B)/deps.mk
-	@echo 'CPANM := $$(CPANM_EXECUTABLE) --local-lib=$$(PERL_LOCAL)' >> $(B)/deps.mk
+	@echo 'BUILD_LOCAL_PERL := $(B)/local' >> $(B)/deps.mk
+	@cat deps.mk >> $(B)/deps.mk
 
 
 

@@ -4,6 +4,11 @@ ifeq ($(strip $(BUILD_DIR)),)
   BUILD_DIR := $(C_SEMANTICS_DIR)/build
 endif
 
+# TODO we should be able to have the build/deps directory elsewhere.
+# Either build/deps may be symlinked,
+# or we may redirect it elsewhere, i.e.
+# using include chains...
+
 export BUILD_ROOT := $(BUILD_DIR)
 
 .PHONY: default
