@@ -1,6 +1,7 @@
 export C_SEMANTICS_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 ifeq ($(strip $(BUILD_DIR)),)
+  $(error Need to provide BUILD_DIR. Use `./make`)
   BUILD_DIR := $(C_SEMANTICS_DIR)/build
 endif
 
