@@ -16,7 +16,7 @@ help:
 .PHONY: $(SRCS)
 $(SRCS):
 	@echo "< Building project '$@'>"
-	mkdir -p $(B)/$@
-	$(MAKE) -C $@ BUILD_DIR=$(B)/$@
+	@mkdir -p $(B)/$@
+	@$(MAKE) -C $@ BUILD_DIR=$(B)/$@
 	@echo "</Building project '$@'>"
 

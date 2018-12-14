@@ -30,20 +30,30 @@ $(B)/RV_Kcc/Opts.pm: RV_Kcc/Opts.pm getopt.pl
 	@mkdir -p $(dir $@)
 	@cat $< | perl getopt.pl > $@
 
+$(B)/RV_Kcc/Files.pm $(B)/RV_Kcc/Shell.pm: $(B)/RV_Kcc/%: RV_Kcc/%
+	@mkdir -p $(dir $@)
+	@cp $^ $@
+
+$(B)/RV_Kcc: $(addprefix $(B)/RV_Kcc/,Opts.pm Files.pm Shell.pm)
+
 KCC_MODULES := $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
 
-#TODO
-$(B)/kcc.trace: kcc $(KCC_MODULES) $(B)/RV_Kcc/Opts.pm
+$(B)/kcc.trace: kcc $(B)/RV_Kcc # $(KCC_MODULES) # $(B)/RV_Kcc/Opts.pm
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
 	@echo Tracing...
-	$(FATPACK) trace --to=$@ $<
+	@$(FATPACK) trace --to=$@ --use=RV_Kcc/Files.pm kcc
 
 $(B)/kcc.packages: $(B)/kcc.trace
-	$(FATPACK) packlists-for `cat $<`
-
-$(B)/kcc: $(B)/writelong $(B)/kcc.packages
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
-	@echo No way.
+	@$(FATPACK) packlists-for `cat $<` > $@
+
+$(B)/kcc: $(B)/kcc.packages $(B)/writelong kcc
+	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	$(eval KCC_SRC := $(shell pwd)/kcc)
+	@echo KCC_SRC: $(KCC_SRC)
+	@cd $(dir $@) && $(FATPACK) tree $(shell cat $(B)/kcc.packages)
+	@cd $(dir $@) && $(FATPACK) file $(KCC_SRC) > $@
+	@chmod --reference=$(KCC_SRC) $@
 
 #$(B)/kcc: $(PERL_MODULES) $(B)/writelong $(FILES_TO_DIST)
 #	mkdir -p $(B)/RV_Kcc
