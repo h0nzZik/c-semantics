@@ -12,21 +12,13 @@ include $(BUILD_ROOT)/deps/deps.mk
 
 FATPACK := $(BUILD_LOCAL_PERL)/bin/fatpack
 
-default: install-required-modules $(B)/kcc
+.PHONY: default
+default: build
+
+.PHONY: build
+build: $(B)/kcc
 
 CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
-
-
-PERL_MODULES :=
-PERL_MODULES += Getopt::Declare
-PERL_MODULES += String::Escape
-PERL_MODULES += String::ShellQuote
-PERL_MODULES += App::FatPacker
-PERL_MODULES += UUID::Tiny
-
-.PHONY: install-required-modules
-install-required-modules:
-	@$(CPANM) $(PERL_MODULES)
 
 $(B)/writelong: writelong.c
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
@@ -38,10 +30,10 @@ $(B)/RV_Kcc/Opts.pm: RV_Kcc/Opts.pm getopt.pl
 	@mkdir -p $(dir $@)
 	@cat $< | perl getopt.pl > $@
 
-PERL_MODULES = $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
+KCC_MODULES := $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
 
 #TODO
-$(B)/kcc.trace: kcc $(PERL_MODULES) $(B)/RV_Kcc/Opts.pm
+$(B)/kcc.trace: kcc $(KCC_MODULES) $(B)/RV_Kcc/Opts.pm
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
 	@echo Tracing...
 	$(FATPACK) trace --to=$@ $<
