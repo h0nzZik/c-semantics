@@ -13,10 +13,7 @@ include $(BUILD_ROOT)/deps/deps.mk
 FATPACK := $(BUILD_LOCAL_PERL)/bin/fatpack
 
 .PHONY: default
-default: build
-
-.PHONY: build
-build: $(B)/kcc
+default: dist
 
 CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
 
@@ -47,13 +44,23 @@ $(B)/kcc.packages: $(B)/kcc.trace
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
 	@$(FATPACK) packlists-for `cat $<` > $@
 
-$(B)/kcc: $(B)/kcc.packages $(B)/writelong kcc
+$(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
 	$(eval KCC_SRC := $(shell pwd)/kcc)
 	@echo KCC_SRC: $(KCC_SRC)
 	@cd $(dir $@) && $(FATPACK) tree $(shell cat $(B)/kcc.packages)
+	@cp -rf $(B)/RV_Kcc $(B)/fatlib
 	@cd $(dir $@) && $(FATPACK) file $(KCC_SRC) > $@
 	@chmod --reference=$(KCC_SRC) $@
+
+.PHONY: dist
+dist: $(B)/dist/kcc
+
+$(B)/dist/kcc: $(B)/kcc
+	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	@mkdir -p $(dir $@)
+	@cp $(B)/kcc $@
+
 
 #$(B)/kcc: $(PERL_MODULES) $(B)/writelong $(FILES_TO_DIST)
 #	mkdir -p $(B)/RV_Kcc
