@@ -18,16 +18,17 @@ dist: $(DIST_ROOT)/kcc
 CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
 
 $(B)/writelong: writelong.c
-	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	@$(GENERATING)
 	@mkdir -p $(dir $@)
 	@gcc $(CFLAGS) $< -o  $@
 
 $(B)/RV_Kcc/Opts.pm: RV_Kcc/Opts.pm getopt.pl
-	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	@$(GENERATING)
 	@mkdir -p $(dir $@)
 	@cat $< | perl getopt.pl > $@
 
 $(B)/RV_Kcc/Files.pm $(B)/RV_Kcc/Shell.pm: $(B)/RV_Kcc/%: RV_Kcc/%
+	@$(GENERATING)
 	@mkdir -p $(dir $@)
 	@cp $^ $@
 
@@ -36,16 +37,16 @@ $(B)/RV_Kcc: $(addprefix $(B)/RV_Kcc/,Opts.pm Files.pm Shell.pm)
 KCC_MODULES := $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
 
 $(B)/kcc.trace: kcc $(B)/RV_Kcc # $(KCC_MODULES) # $(B)/RV_Kcc/Opts.pm
-	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	@$(GENERATING)
 	@echo Tracing...
 	@$(FATPACK) trace --to=$@ --use=RV_Kcc/Files.pm kcc
 
 $(B)/kcc.packages: $(B)/kcc.trace
-	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	@$(GENERATING)
 	@$(FATPACK) packlists-for `cat $<` > $@
 
 $(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
-	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	@$(GENERATING)
 	$(eval KCC_SRC := $(shell pwd)/kcc)
 	@echo KCC_SRC: $(KCC_SRC)
 	@cd $(dir $@) && $(FATPACK) tree $(shell cat $(B)/kcc.packages)
@@ -55,6 +56,6 @@ $(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
 
 
 $(DIST_ROOT)/kcc: $(B)/kcc
-	@echo Generating $(@:$(BUILD_ROOT)/%=%)
+	@$(GENERATING)
 	@mkdir -p $(dir $@)
 	@cp $(B)/kcc $@

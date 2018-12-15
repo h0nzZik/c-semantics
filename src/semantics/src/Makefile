@@ -1,10 +1,4 @@
-ifeq ($(strip $(BUILD_DIR)),)
-  $(error Need BUILD_DIR)
-endif
-
-ifeq ($(strip $(BUILD_ROOT)),)
-  $(error Need BUILD_ROOT)
-endif
+include ../../inc.mk
 
 ifeq ($(strip $(PROFILE)),)
   $(error Need PROFILE)
@@ -14,11 +8,7 @@ ifeq ($(strip $(PROFILE_DIR)),)
   $(error Need PROFILE_DIR)
 endif
 
-include $(BUILD_ROOT)/deps/deps.mk
-
-B := $(BUILD_DIR)
 BP := $(B)/$(PROFILE)
-
 
 KOMPILE_DEFAULT_FLAGS := --backend ocaml --non-strict --smt none
 CPP_KOMPILE_FLAGS := --opaque-klabels c11-translation.k
@@ -33,26 +23,32 @@ endef
 default: fast
 
 $(call timestamp_of,c11-translation):
+	@$(GENERATING)
 	@echo "Kompiling the static C semantics..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) c11-translation.k -d "$(BP)/c11-translation-kompiled" --no-prelude -w all -v --debug -I $(PROFILE_DIR)/semantics
 
 $(call timestamp_of,cpp14-translation):
+	@$(GENERATING)
 	@echo "Kompiling the static C++ semantics..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(CPP_KOMPILE_FLAGS) cpp14-translation.k -d "$(BP)/cpp14-translation-kompiled" --no-prelude -w all -v --debug -I $(PROFILE_DIR)/semantics
 
 $(call timestamp_of,c11-cpp14-linking):
+	@$(GENERATING)
 	@echo "Kompiling the C and C++ linking semantics..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(CPP_KOMPILE_FLAGS) c11-cpp14-linking.k -d "$(BP)/c11-cpp14-linking-kompiled" --no-prelude -w all -v --debug -I $(PROFILE_DIR)/semantics
 
 $(call timestamp_of,c11-cpp14):
+	@$(GENERATING)
 	@echo "Kompiling the dynamic C and C++ semantics..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d "$(BP)/c11-cpp14-kompiled" --no-prelude -w all -v --transition "interpRule" --debug -I $(PROFILE_DIR)/semantics
 
 $(call timestamp_of,c11-nd):
+	@$(GENERATING)
 	@echo "Kompiling the dynamic C and C++ semantics with expression sequencing non-determinism..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d "$(BP)/c11-nd-kompiled" --no-prelude --transition "observable ndtrans" --superheat "ndheat" --supercool "ndlocal" -I $(PROFILE_DIR)/semantics
 
 $(call timestamp_of,c11-nd-thread):
+	@$(GENERATING)
 	@echo "Kompiling the dynamic C and C++ semantics with thread-interleaving non-determinism..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d "$(BP)/c11-nd-thread-kompiled" --no-prelude --transition "observable ndtrans ndthread" -I $(PROFILE_DIR)/semantics
 
@@ -99,18 +95,21 @@ KDEP_FLAGS += -I $(PROFILE_DIR)/semantics/c
 KDEP_FLAGS += -I $(PROFILE_DIR)/semantics/cpp
 
 $(BASIC_DEPENDS): $(BP)/.depend-$(PROFILE)-basic-%:
+	@$(GENERATING)
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(B)/$(PROFILE)/$*-kompiled" -- $*.k > $(TMP)
 	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
 $(BP)/.depend-$(PROFILE)-nd:
+	@$(GENERATING)
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(BP)/c11-nd-kompiled" -- c11-cpp14.k > $(TMP)
 	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
 $(BP)/.depend-$(PROFILE)-nd-thread:
+	@$(GENERATING)
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(BP)/c11-nd-thread-kompiled" -- c11-cpp14.k > $(TMP)
 	mkdir -p $(dir $@)

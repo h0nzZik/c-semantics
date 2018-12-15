@@ -1,4 +1,4 @@
-include ../inc.mk
+include ../../inc.mk
 
 THIS_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 

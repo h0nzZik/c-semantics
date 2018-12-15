@@ -8,4 +8,6 @@ endif
 
 B := $(BUILD_DIR)
 
+GENERATING = echo Creating $(@:$(BUILD_ROOT)/%=%)
+
 include $(BUILD_ROOT)/deps/deps.mk

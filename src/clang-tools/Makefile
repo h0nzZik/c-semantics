@@ -6,7 +6,7 @@ CMAKE_FLAGS := -DLLVM_PATH='$(LLVM_PATH)' -DCMAKE_CXX_FLAGS=-fno-rtti
 default: build
 
 $(B)/CMakeCache.txt:
-	@echo Configuring
+	@$(GENERATING)
 	@cmake $(CMAKE_FLAGS) -B'$(B)' -H./src
 
 .PHONY: build
