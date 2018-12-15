@@ -12,8 +12,19 @@ include $(BUILD_ROOT)/deps/deps.mk
 
 FATPACK := $(BUILD_LOCAL_PERL)/bin/fatpack
 
+
 .PHONY: default
 default: dist
+
+.PHONY: help
+help:
+	@echo 'Targets: default help build dist'
+
+.PHONY: build
+build: $(B)/kcc
+
+.PHONY: dist
+dist: $(DIST_ROOT)/kcc
 
 CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
 
@@ -53,10 +64,8 @@ $(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
 	@cd $(dir $@) && $(FATPACK) file $(KCC_SRC) > $@
 	@chmod --reference=$(KCC_SRC) $@
 
-.PHONY: dist
-dist: $(B)/dist/kcc
 
-$(B)/dist/kcc: $(B)/kcc
+$(DIST_ROOT)/kcc: $(B)/kcc
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
 	@mkdir -p $(dir $@)
 	@cp $(B)/kcc $@

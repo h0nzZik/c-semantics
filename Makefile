@@ -1,10 +1,14 @@
-export C_SEMANTICS_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
-
 ifeq ($(strip $(BUILD_ROOT)),)
   $(error Need to provide BUILD_DIR. Use `./make`)
 endif
-
 export BUILD_ROOT
+
+ifeq ($(strip $(DIST_ROOT)),)
+  $(info DIST_ROOT not provided)
+  DIST_ROOT := $(BUILD_ROOT)/dist
+  $(info DIST_ROOT := $(DIST_ROOT))
+endif
+export DIST_ROOT
 
 # TODO we should be able to have the build/deps directory elsewhere.
 # Either build/deps may be symlinked,
