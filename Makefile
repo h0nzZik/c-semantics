@@ -1,16 +1,17 @@
 export C_SEMANTICS_DIR := $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
-ifeq ($(strip $(BUILD_DIR)),)
+ifeq ($(strip $(BUILD_ROOT)),)
   $(error Need to provide BUILD_DIR. Use `./make`)
-  BUILD_DIR := $(C_SEMANTICS_DIR)/build
 endif
+
+export BUILD_ROOT
 
 # TODO we should be able to have the build/deps directory elsewhere.
 # Either build/deps may be symlinked,
 # or we may redirect it elsewhere, i.e.
 # using include chains...
 
-export BUILD_ROOT := $(BUILD_DIR)
+BUILD_DIR := $(BUILD_ROOT)
 
 .PHONY: default
 .default: help
@@ -23,9 +24,6 @@ help:
 	@echo '  deps'
 	@echo '  build'
 	@echo '  dist'
-	@echo 'Variables:'
-	@echo '  BUILD_DIR := $(BUILD_DIR)'
-
 
 # Dependencies
 build: deps
