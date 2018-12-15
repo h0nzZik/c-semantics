@@ -58,24 +58,3 @@ $(DIST_ROOT)/kcc: $(B)/kcc
 	@echo Generating $(@:$(BUILD_ROOT)/%=%)
 	@mkdir -p $(dir $@)
 	@cp $(B)/kcc $@
-
-
-#$(B)/kcc: $(PERL_MODULES) $(B)/writelong $(FILES_TO_DIST)
-#	mkdir -p $(B)/RV_Kcc
-#	cp -RLp $(FILES_TO_DIST) $(B)
-#	cp -RLp $(PERL_MODULES) $(B)/RV_Kcc
-#	cp -p $(B)/kcc $(B)/kclang
-#
-#.PHONY: pack
-#pack: $(B)/kcc
-#	cd $(B) && fatpack trace kcc
-#	cd $(B) && fatpack packlists-for `cat fatpacker.trace` >packlists
-#	cat $(B)/packlists
-#	cd $(B) && fatpack tree `cat packlists`
-#	cp -rf $(B)/RV_Kcc $(B)/fatlib
-#	cd $(B) && fatpack file kcc > kcc.packed
-#	chmod --reference=$(B)/kcc $(B)/kcc.packed
-#	mv -f $(B)/kcc.packed $(B)/kcc
-#	cp -pf $(B)/kcc $(B)/kclang
-#	rm -rf $(B)/fatlib $(B)/RV_Kcc $(B)/packlists $(B)/fatpacker.trace
-#
