@@ -35,6 +35,10 @@ else
   endif
 endif
 
+#################
+##### Build #####
+#################
+
 TIMESTAMPS_TO_BUILD := $(foreach var,$(DEFS_TO_BUILD), $(call timestamp_of,$(var)))
 
 .PHONY: default
@@ -121,9 +125,22 @@ $(BP)/.depend-$(PROFILE)-nd-thread:
 	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
+########################
+##### Distribution #####
+########################
+
+DP := $(DIST_ROOT)/profiles/$(PROFILE)
+TO_DIST := $(foreach var,$(DEFS_TO_BUILD), $(DP)/$(var)-kompiled)
 
 .PHONY: dist
-dist: build $(DIST_ROOT)/profiles/$(PROFILE)
+dist: build $(DIST_ROOT)/profiles/$(PROFILE) $(TO_DIST)
+
+.SECONDEXPANSION:
+$(TO_DIST): $(DP)/%-kompiled: $(call timestamp_of,$*)
+	@$(GENERATING)
+	@mkdir -p $(DP)
+	@rm -rf $@
+	@cp -RLp $(BP)/$*-kompiled  $(DP)
 
 $(DIST_ROOT)/profiles/$(PROFILE):
 	@mkdir -p $@/lib
