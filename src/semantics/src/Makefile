@@ -129,11 +129,13 @@ $(BP)/.depend-$(PROFILE)-nd-thread:
 ##### Distribution #####
 ########################
 
+SUBPROFILE_DIRS =
+PROFILE_FILES = include src compiler-src native pp cpp-pp cc cxx
+PROFILE_FILE_DEPS = $(foreach f, $(PROFILE_FILES), $(PROFILE_DIR)/$(f))
+
 DP := $(DIST_ROOT)/profiles/$(PROFILE)
 TO_DIST := $(foreach var,$(DEFS_TO_BUILD), $(DP)/$(var)-kompiled)
 
-.PHONY: dist
-dist: build $(DIST_ROOT)/profiles/$(PROFILE) $(TO_DIST)
 
 .SECONDEXPANSION:
 $(TO_DIST): $(DP)/%-kompiled: $(call timestamp_of,$$*)
@@ -142,8 +144,17 @@ $(TO_DIST): $(DP)/%-kompiled: $(call timestamp_of,$$*)
 	@rm -rf $@
 	@cp -RLp $(BP)/$*-kompiled  $(DP)
 
-$(DIST_ROOT)/profiles/$(PROFILE):
+.PHONY: dist
+dist: build $(TO_DIST)
+	@$(GENERATING)
 	@mkdir -p $@/lib
 	@printf "%s" $(PROFILE) > $(DIST_ROOT)/current-profile
 	@printf "%s" $(PROFILE) > $(DIST_ROOT)/default-profile
-
+	@-$(foreach f, $(PROFILE_FILE_DEPS), \
+		cp -RLp $(f) $@;)
+	@$(foreach d, $(SUBPROFILE_DIRS), \
+		mkdir -p $(DIST_ROOT)/profiles/$(shell basename $(d))/lib;)
+	@-$(foreach d, $(SUBPROFILE_DIRS), $(foreach f, $(PROFILE_FILES), \
+		cp -RLp $(d)/$(f) $(DIST_ROOT)/profiles/$(shell basename $(d))/$(f);))
+	@-$(foreach d, $(SUBPROFILE_DIRS), \
+		cp -RLp $(DP)/native/* $(DIST_ROOT)/profiles/$(shell basename $(d))/native;)
