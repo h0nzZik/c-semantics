@@ -56,12 +56,18 @@ $(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
 ########################
 
 D := $(DIST_ROOT)
-TO_DIST := $(D)/kcc $(D)/ignored-flags
+TO_DIST := $(D) $(D)/kcc $(D)/ignored-flags
 
 .PHONY: dist
 dist: $(TO_DIST)
 
-$(TO_DIST): $(D)/%: $(B)/%
+$(D):
+	@mkdir -p $@
+
+$(D)/kcc: $(B)/kcc
 	@$(GENERATING)
-	@mkdir -p $(dir $@)
+	@cp $^ $@
+
+$(D)/ignored-flags: ignored-flags
+	@$(GENERATING)
 	@cp $^ $@
