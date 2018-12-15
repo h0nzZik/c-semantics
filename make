@@ -5,4 +5,4 @@ if [[ $BUILD_ROOT == "" ]]; then
 fi
 
 echo "Building in $BUILD_ROOT"
-make BUILD_ROOT="$BUILD_ROOT" "$@" | ./src/logger "$BUILD_ROOT/build.log"
+make BUILD_ROOT="$BUILD_ROOT" "$@" 2>&1 | ./src/logger "$BUILD_ROOT/build.log"
