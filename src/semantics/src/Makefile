@@ -15,12 +15,34 @@ CPP_KOMPILE_FLAGS := --opaque-klabels c11-translation.k
 EXECUTION_KOMPILE_FLAGS := --opaque-klabels cpp14-translation.k --no-expand-macros --ocaml-serialize-config '$$PGM' --ocaml-dump-exit-code 139
 KDEP_DEFAULT_FLAGS :=
 
-define timestamp_of
-    $(BP)/$(1)-kompiled/$(1)-kompiled/timestamp
-endef
+timestamp_of = $(BP)/$(1)-kompiled/$(1)-kompiled/timestamp
+
+ifeq ($(strip $(BUILD_DEFS)),)
+  BUILD_DEFS := c-and-cpp
+endif
+
+ifeq ($(strip $(BUILD_DEFS)),only-c)
+  DEFS_TO_BUILD := c11-translation c11-cpp14-linking c11-cpp14
+else
+  ifeq ($(strip $(BUILD_DEFS)),c-and-cpp)
+    DEFS_TO_BUILD := c11-translation cpp14-translation c11-cpp14-linking c11-cpp14
+  else
+    ifeq ($(strip $(BUILD_DEFS)),everything)
+      DEFS_TO_BUILD := c11-nd c11-thread c11-translation cpp14-translation c11-cpp14-linking c11-cpp14
+    else
+      $(error values for BUILD_DEFS: only-c, c-and-cpp, everything)
+    endif
+  endif
+endif
+
+TIMESTAMPS_TO_BUILD := $(foreach var,$(DEFS_TO_BUILD), $(call timestamp_of,$(var)))
+$(info TIMESTAMPS_TO_BUILD: $(TIMESTAMPS_TO_BUILD))
 
 .PHONY: default
-default: fast
+default: build #dist
+
+.PHONY: build
+build: $(TIMESTAMPS_TO_BUILD)
 
 $(call timestamp_of,c11-translation):
 	@$(GENERATING)
@@ -52,25 +74,10 @@ $(call timestamp_of,c11-nd-thread):
 	@echo "Kompiling the dynamic C and C++ semantics with thread-interleaving non-determinism..."
 	$(KOMPILE) $(KOMPILE_DEFAULT_FLAGS) $(EXECUTION_KOMPILE_FLAGS) c11-cpp14.k -d "$(BP)/c11-nd-thread-kompiled" --no-prelude --transition "observable ndtrans ndthread" -I $(PROFILE_DIR)/semantics
 
-.PHONY: all
-all: fast nd thread
-
-.PHONY: fast
-fast: $(addsuffix -semantics,c11-translation c11-cpp14 c11-cpp14)
-
-.PHONY: fast-cpp
-fast-cpp: $(addsuffix -semantics,c11-translation c11-cpp14 c11-cpp14-linking cpp14-translation)
-
 XYZ_SEMANTICS := $(addsuffix -semantics,c11-translation cpp14-translation c11-cpp14-linking c11-cpp14)
 .PHONY: $(XYZ_SEMANTICS)
 .SECONDEXPANSION:
 $(XYZ_SEMANTICS): %-semantics: $(call timestamp_of,$$*)
-
-.PHONY: nd
-nd: $(call timestamp_of,c11-nd)
-
-.PHONY: thread
-thread: $(call timestamp_of,c11-nd-thread)
 
 .PHONY: clean
 clean:
@@ -114,4 +121,13 @@ $(BP)/.depend-$(PROFILE)-nd-thread:
 	$(KDEP) $(KDEP_FLAGS) -d "$(BP)/c11-nd-thread-kompiled" -- c11-cpp14.k > $(TMP)
 	mkdir -p $(dir $@)
 	mv $(TMP) $@
+
+
+.PHONY: dist
+dist: $(DIST_ROOT)/profiles/$(PROFILE)
+
+$(DIST_ROOT)/profiles/$(PROFILE):
+	@mkdir -p $@/lib
+	@printf "%s" $(PROFILE) > $(DIST_ROOT)/current-profile
+	@printf "%s" $(PROFILE) > $(DIST_ROOT)/default-profile
 
