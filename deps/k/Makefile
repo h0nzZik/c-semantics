@@ -1,4 +1,6 @@
 K_REPO := https://github.com/kframework/k.git
+K_BRANCH := master
+K_COMMIT := HEAD
 
 ifeq ($(strip $(BUILD_DIR)),)
   $(error Need BUILD_DIR)
@@ -53,7 +55,8 @@ default: regenerate
 
 $(B)/k:
 	@echo 'Obtaining K from $(K_REPO)'
-	@git clone --recursive $(K_REPO) $(B)/k
+	@git clone --recursive --depth 1 --single-branch --branch $(K_BRANCH) $(K_REPO) $(B)/k
+	@cd $(B)/k; git checkout $(K_COMMIT)
 
 $(OUR_K_BIN): $(B)/k
 	@echo 'Building K'
@@ -65,8 +68,6 @@ regenerate: $(DESIRED_K_BIN)
 	@#$(DESIRED_K_BIN)/kompile --help
 	@rm -f $(B)/deps.mk
 	@echo 'K_BIN := $(DESIRED_K_BIN)' >> $(B)/deps.mk
-	@echo 'KOMPILE := $$(K_BIN)/kompile' >> $(B)/deps.mk
-	@echo 'KRUN := $$(K_BIN)/krun' >> $(B)/deps.mk
-	@echo 'KDEP := $$(K_BIN)/kdep' >> $(B)/deps.mk
+	@cat deps.mk >> $(B)/deps.mk
 
 #TODO ocaml backend
