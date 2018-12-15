@@ -1,4 +1,4 @@
-include ../inc.mk
+include ../../inc.mk
 
 ifeq ($(strip $(PROFILE)),)
   $(error Need PROFILE)
