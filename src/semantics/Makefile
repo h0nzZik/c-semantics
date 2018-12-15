@@ -1,9 +1,10 @@
+THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
+THIS_MAKEFILE_DIR := $(dir $(realpath $(THIS_MAKEFILE)))
+
 include ../inc.mk
 
-THIS_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-
 PROFILE := x86-gcc-limited-libc
-PROFILE_DIR := $(realpath $(THIS_DIR)/../profiles)/$(PROFILE)
+PROFILE_DIR := $(realpath $(THIS_MAKEFILE_DIR)/../profiles)/$(PROFILE)
 
 .PHONY: default
 default:
