@@ -36,10 +36,9 @@ else
 endif
 
 TIMESTAMPS_TO_BUILD := $(foreach var,$(DEFS_TO_BUILD), $(call timestamp_of,$(var)))
-$(info TIMESTAMPS_TO_BUILD: $(TIMESTAMPS_TO_BUILD))
 
 .PHONY: default
-default: build #dist
+default: dist
 
 .PHONY: build
 build: $(TIMESTAMPS_TO_BUILD)
@@ -124,7 +123,7 @@ $(BP)/.depend-$(PROFILE)-nd-thread:
 
 
 .PHONY: dist
-dist: $(DIST_ROOT)/profiles/$(PROFILE)
+dist: build $(DIST_ROOT)/profiles/$(PROFILE)
 
 $(DIST_ROOT)/profiles/$(PROFILE):
 	@mkdir -p $@/lib
