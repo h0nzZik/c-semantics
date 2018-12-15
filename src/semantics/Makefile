@@ -1,6 +1,4 @@
-ifeq ($(strip $(BUILD_DIR)),)
-  $(error Need BUILD_DIR)
-endif
+include ../inc.mk
 
 THIS_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
