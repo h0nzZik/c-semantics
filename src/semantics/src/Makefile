@@ -136,7 +136,7 @@ TO_DIST := $(foreach var,$(DEFS_TO_BUILD), $(DP)/$(var)-kompiled)
 dist: build $(DIST_ROOT)/profiles/$(PROFILE) $(TO_DIST)
 
 .SECONDEXPANSION:
-$(TO_DIST): $(DP)/%-kompiled: $(call timestamp_of,$*)
+$(TO_DIST): $(DP)/%-kompiled: $(call timestamp_of,$$*)
 	@$(GENERATING)
 	@mkdir -p $(DP)
 	@rm -rf $@
