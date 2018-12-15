@@ -101,15 +101,18 @@ KDEP_FLAGS += -I $(PROFILE_DIR)/semantics/cpp
 $(BASIC_DEPENDS): $(BP)/.depend-$(PROFILE)-basic-%:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(B)/$(PROFILE)/$*-kompiled" -- $*.k > $(TMP)
+	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
 $(BP)/.depend-$(PROFILE)-nd:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(BP)/c11-nd-kompiled" -- c11-cpp14.k > $(TMP)
+	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
 $(BP)/.depend-$(PROFILE)-nd-thread:
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(BP)/c11-nd-thread-kompiled" -- c11-cpp14.k > $(TMP)
+	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
