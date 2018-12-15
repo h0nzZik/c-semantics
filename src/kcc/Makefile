@@ -12,9 +12,6 @@ help:
 .PHONY: build
 build: $(B)/kcc
 
-.PHONY: dist
-dist: $(DIST_ROOT)/kcc
-
 CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
 
 $(B)/writelong: writelong.c
@@ -54,8 +51,17 @@ $(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
 	@cd $(dir $@) && $(FATPACK) file $(KCC_SRC) > $@
 	@chmod --reference=$(KCC_SRC) $@
 
+########################
+##### Distribution #####
+########################
 
-$(DIST_ROOT)/kcc: $(B)/kcc
+D := $(DIST_ROOT)
+TO_DIST := $(D)/kcc $(D)/ignored-flags
+
+.PHONY: dist
+dist: $(TO_DIST)
+
+$(TO_DIST): $(D)/%: $(B)/%
 	@$(GENERATING)
 	@mkdir -p $(dir $@)
-	@cp $(B)/kcc $@
+	@cp $^ $@
