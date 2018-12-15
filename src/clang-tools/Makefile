@@ -6,6 +6,8 @@ ifeq ($(strip $(BUILD_ROOT)),)
   $(error Need BUILD_ROOT)
 endif
 
+B := $(BUILD_DIR)
+
 include $(BUILD_ROOT)/deps/deps.mk
 
 CMAKE_FLAGS := -DLLVM_PATH='$(LLVM_PATH)' -DCMAKE_CXX_FLAGS=-fno-rtti
@@ -13,11 +15,11 @@ CMAKE_FLAGS := -DLLVM_PATH='$(LLVM_PATH)' -DCMAKE_CXX_FLAGS=-fno-rtti
 .PHONY: default
 default: build
 
-$(BUILD_DIR)/CMakeCache.txt:
+$(B)/CMakeCache.txt:
 	@echo Configuring
-	@cmake $(CMAKE_FLAGS) -B'$(BUILD_DIR)' -H./src
+	@cmake $(CMAKE_FLAGS) -B'$(B)' -H./src
 
 .PHONY: build
-build: $(BUILD_DIR)/CMakeCache.txt
+build: $(B)/CMakeCache.txt
 	@echo Building
-	@cmake --build '$(BUILD_DIR)'
+	@cmake --build '$(B)'
