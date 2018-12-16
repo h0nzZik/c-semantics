@@ -114,6 +114,7 @@ $(BASIC_DEPENDS): $(BP)/.depend-%.mk:
 	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
+#TODO rebuild only if some k file in src/ or include/ changes
 $(BP)/.depend-c11-nd.mk:
 	@$(GENERATING)
 	$(eval TMP := $(shell mktemp))
@@ -154,7 +155,7 @@ dist: build $(TO_DIST)
 	@printf "%s" $(PROFILE) > $(DIST_ROOT)/current-profile
 	@printf "%s" $(PROFILE) > $(DIST_ROOT)/default-profile
 	@-$(foreach f, $(PROFILE_FILE_DEPS), \
-		cp -RLp $(f) $@;)
+		cp -RLp $(f) $(DP);)
 	@$(foreach d, $(SUBPROFILE_DIRS), \
 		mkdir -p $(DIST_ROOT)/profiles/$(shell basename $(d))/lib;)
 	@-$(foreach d, $(SUBPROFILE_DIRS), $(foreach f, $(PROFILE_FILES), \
