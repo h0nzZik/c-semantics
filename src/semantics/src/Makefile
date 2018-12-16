@@ -15,6 +15,9 @@ CPP_KOMPILE_FLAGS := --opaque-klabels c11-translation.k
 EXECUTION_KOMPILE_FLAGS := --opaque-klabels cpp14-translation.k --no-expand-macros --ocaml-serialize-config '$$PGM' --ocaml-dump-exit-code 139
 KDEP_DEFAULT_FLAGS :=
 
+
+BASIC_DEFS := c11-translation cpp14-translation c11-cpp14-linking c11-cpp14
+
 timestamp_of = $(BP)/$(1)-kompiled/$(1)-kompiled/timestamp
 
 ifeq ($(strip $(BUILD_DEFS)),)
@@ -46,6 +49,7 @@ default: dist
 
 .PHONY: build
 build: $(TIMESTAMPS_TO_BUILD)
+	@echo Everything built.
 
 $(call timestamp_of,c11-translation):
 	@$(GENERATING)
@@ -88,10 +92,9 @@ clean:
 	@-rm -rf .kompile-*
 	@-rm -rf .depend-* $(B)/*
 
-BASIC_DEPENDS := $(addprefix $(BP)/.depend-$(PROFILE)-basic-,c11-translation cpp14-translation c11-cpp14-linking c11-cpp14)
-SPECIAL_DEPENDS := $(BP)/.depend-$(PROFILE)-nd $(BP)/.depend-$(PROFILE)-nd-thread
-DEPENDS := $(BASIC_DEPENDS) $(SPECIAL_DEPENDS)
 
+BASIC_DEPENDS := $(foreach var, $(BASIC_DEFS), $(BP)/.depend-$(var).mk)
+DEPENDS := $(foreach var, $(DEFS_TO_BUILD), $(BP)/.depend-$(var).mk)
 .PHONY: $(DEPENDS)
 
 # See https://stackoverflow.com/a/4270649/6209703
@@ -104,21 +107,21 @@ KDEP_FLAGS += -I $(PROFILE_DIR)/semantics
 KDEP_FLAGS += -I $(PROFILE_DIR)/semantics/c
 KDEP_FLAGS += -I $(PROFILE_DIR)/semantics/cpp
 
-$(BASIC_DEPENDS): $(BP)/.depend-$(PROFILE)-basic-%:
+$(BASIC_DEPENDS): $(BP)/.depend-%.mk:
 	@$(GENERATING)
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(B)/$(PROFILE)/$*-kompiled" -- $*.k > $(TMP)
 	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
-$(BP)/.depend-$(PROFILE)-nd:
+$(BP)/.depend-c11-nd.mk:
 	@$(GENERATING)
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(BP)/c11-nd-kompiled" -- c11-cpp14.k > $(TMP)
 	mkdir -p $(dir $@)
 	mv $(TMP) $@
 
-$(BP)/.depend-$(PROFILE)-nd-thread:
+$(BP)/.depend-c11-thread.mk:
 	@$(GENERATING)
 	$(eval TMP := $(shell mktemp))
 	$(KDEP) $(KDEP_FLAGS) -d "$(BP)/c11-nd-thread-kompiled" -- c11-cpp14.k > $(TMP)
@@ -158,3 +161,6 @@ dist: build $(TO_DIST)
 		cp -RLp $(d)/$(f) $(DIST_ROOT)/profiles/$(shell basename $(d))/$(f);))
 	@-$(foreach d, $(SUBPROFILE_DIRS), \
 		cp -RLp $(DP)/native/* $(DIST_ROOT)/profiles/$(shell basename $(d))/native;)
+
+# see http://clarkgrubb.com/makefile-style-guide#phony-targets
+FORCE:
