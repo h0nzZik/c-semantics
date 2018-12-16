@@ -56,7 +56,9 @@ $(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
 ########################
 
 D := $(DIST_ROOT)
-TO_DIST := $(D) $(D)/kcc $(D)/ignored-flags
+FILES := ignored-flags merge-kcc-obj gccsymdump globalize-syms make-symbols make-trampolines split-kcc-obj program-runner
+
+TO_DIST := $(D) $(D)/kcc $(addprefix $(D)/,$(FILES))
 
 .PHONY: dist
 dist: $(TO_DIST)
@@ -68,6 +70,6 @@ $(D)/kcc: $(B)/kcc
 	@$(GENERATING)
 	@cp $^ $@
 
-$(D)/ignored-flags: ignored-flags
+$(addprefix $(D)/,$(FILES)): $(D)/%: %
 	@$(GENERATING)
 	@cp $^ $@
