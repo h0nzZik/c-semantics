@@ -1,33 +1,41 @@
+SRCD := $(CURDIR)
+
+include ../inc.mk
+
 ifneq ($(MAKECMDGOALS),clean)
   ifeq ($(strip $(BUILD_DIR)),)
     $(error Need BUILD_DIR)
   endif
 endif
-B := $(BUILD_DIR)
 
 
+EXEEXT=
 # CIL_BASE = ../cil
 # CIL_PLATFORM ?= $(firstword $(shell ls $(CIL_BASE)/obj))
 # no warnings
-OCAMLOPT_FLAGS = -w a -warn-error a 
+OCAMLOPT_FLAGS := -w a -warn-error a 
 # all warnings
 #OCAMLOPT_FLAGS = -w A -warn-error A
 
 # CIL = $(CIL_BASE)/obj/$(CIL_PLATFORM)
 
-OCAML_COMPILE = ocamlfind ocamlopt -package camomile $(OCAMLOPT_FLAGS) -c
+OCAML_COMPILE := ocamlfind ocamlopt -package camomile $(OCAMLOPT_FLAGS) -I $(B) -c
 
-OCAML_LEX = ocamllex
-OCAML_YACC = ocamlyacc
-OCAML_LINK = ocamlfind ocamlopt -package camomile -linkpkg $(OCAMLOPT_FLAGS)
+OCAML_LEX := ocamllex
+OCAML_YACC := ocamlyacc
+OCAML_LINK := ocamlfind ocamlopt -package camomile -linkpkg $(OCAMLOPT_FLAGS) -I $(B)
 
 # these are partially ordered by inclusion.  don't know how to avoid manually ordering these
-MODULES = base64.cmx errormsg.cmx longarray.cmx growArray.cmx escape.cmx cabshelper.cmx whitetrack.cmx cprint.cmx lexerhack.cmx cabs.cmx clexer.cmx cparser.cmx frontc.cmx xmlPrinter.cmx cabsDriver.cmx
+MODULES := $(addprefix $(B)/,base64.cmx errormsg.cmx longarray.cmx growArray.cmx escape.cmx cabshelper.cmx whitetrack.cmx cprint.cmx lexerhack.cmx cabs.cmx clexer.cmx cparser.cmx frontc.cmx xmlPrinter.cmx cabsDriver.cmx)
 
 #IOXML = ioxml/ioXML.cmx ioxml/pa_ioXML.cmo
-.PHONY: all cleanOnMakefileChange clean 
 #ioxml
-all: cparser$(EXEEXT)
+
+.PHONY:
+default: distribute
+
+CPARSER := cparser$(EXEEXT)
+
 
 # $(IOXML): ioxml/ioXML.ml ioxml/ioXML.mli ioxml/pa_ioXML.ml
 # make -C ioxml all
@@ -37,39 +45,60 @@ all: cparser$(EXEEXT)
 # sed -i '2 i open Cabs' xmlPrinter.tmp
 # mv xmlPrinter.tmp xmlPrinter.ml
 
-clexer.ml: clexer.mll
-	@$(OCAML_LEX) clexer.mll
+$(B)/clexer.ml: clexer.mll
+	@$(BUILDING)
+	@$(OCAML_LEX) $< -o $@
 
-cparser.ml cparser.mli: cparser.mly cabs.cmx cabshelper.cmx
-	@$(OCAML_YACC) cparser.mly
+$(B)/cparser.ml $(B)/cparser.mli: cparser.mly $(B)/cabs.cmx $(B)/cabshelper.cmx
+	@$(BUILDING)
+	@$(OCAML_YACC) $<
+	@mv cparser.ml $(B)
+	@mv cparser.mli $(B)
 
-lexerhack.cmx lexerhack.cmi: errormsg.cmx
-whitetrack.cmx whitetrack.cmi: cabs.cmx cabshelper.cmx
-escape.cmx escape.cmi: whitetrack.cmx
-cprint.cmx cprint.cmi: escape.cmx cabs.cmx
-longarray.cmx longarray.cmi: errormsg.cmx
-growArray.cmx growArray.cmi: errormsg.cmx longarray.cmx
-cabshelper.cmx cabshelper.cmi: errormsg.cmx growArray.cmx cabs.cmx
-cparser.cmx: cabs.cmx cabshelper.cmx lexerhack.cmx cprint.cmx cparser.cmi
-cabsDriver.cmx cabsDriver.cmi: cparser.cmx frontc.cmx clexer.cmx xmlPrinter.cmx
-frontc.cmx frontc.cmi: errormsg.cmx whitetrack.cmx cprint.cmx clexer.cmx
-clexer.cmx clexer.cmi: lexerhack.cmx cparser.cmx cprint.cmx cabshelper.cmx
-xmlPrinter.cmx xmlPrinter.cmi: cabs.cmx escape.cmx
-%.cmx: %.ml 
-	@$(OCAML_COMPILE) $*.ml
+$(B)/lexerhack.cmx  $(B)/lexerhack.cmi  : $(B)/errormsg.cmx
+$(B)/whitetrack.cmx $(B)/whitetrack.cmi : $(B)/cabs.cmx $(B)/cabshelper.cmx
+$(B)/escape.cmx     $(B)/escape.cmi     : $(B)/whitetrack.cmx
+$(B)/cprint.cmx     $(B)/cprint.cmi     : $(B)/escape.cmx $(B)/cabs.cmx
+$(B)/longarray.cmx  $(B)/longarray.cmi  : $(B)/errormsg.cmx
+$(B)/growArray.cmx  $(B)/growArray.cmi  : $(B)/errormsg.cmx $(B)/longarray.cmx
+$(B)/cabshelper.cmx $(B)/cabshelper.cmi : $(B)/errormsg.cmx $(B)/growArray.cmx $(B)/cabs.cmx
+$(B)/cparser.cmx                        : $(B)/cabs.cmx $(B)/cabshelper.cmx $(B)/lexerhack.cmx $(B)/cprint.cmx $(B)/cparser.cmi
+$(B)/cabsDriver.cmx $(B)/cabsDriver.cmi : $(B)/cparser.cmx $(B)/frontc.cmx $(B)/clexer.cmx $(B)/xmlPrinter.cmx
+$(B)/frontc.cmx     $(B)/frontc.cmi     : $(B)/errormsg.cmx $(B)/whitetrack.cmx $(B)/cprint.cmx $(B)/clexer.cmx
+$(B)/clexer.cmx     $(B)/clexer.cmi     : $(B)/lexerhack.cmx $(B)/cparser.cmx $(B)/cprint.cmx $(B)/cabshelper.cmx
+$(B)/xmlPrinter.cmx $(B)/xmlPrinter.cmi : $(B)/cabs.cmx $(B)/escape.cmx
+
+$(B)/clexer.cmx $(B)/cparser.cmx: $(B)/%.cmx: $(B)/%.ml
+	@$(GENERATING)
+	@$(OCAML_COMPILE) $< -o $@
+
+$(B)/%.cmx: %.ml 
+	@$(GENERATING)
+	@$(OCAML_COMPILE) $*.ml -o $@
 	
-cparser.cmi: cparser.mli cabs.cmx clexer.ml
-	@$(OCAML_COMPILE) cparser.mli
+$(B)/cparser.cmi: $(B)/cparser.mli $(B)/cabs.cmx $(B)/clexer.ml
+	@$(GENERATING)
+	@$(OCAML_COMPILE) $(B)/cparser.mli -o $@
 	
-cabsDriver.cmx cabsDriver.cmi: xmlPrinter.cmx
+$(B)/cabsDriver.cmx $(B)/cabsDriver.cmi: $(B)/xmlPrinter.cmx
 
-EXEEXT=
 
-cparser$(EXEEXT): $(MODULES)
-	$(OCAML_LINK) -o $@ str.cmxa nums.cmxa $^
-	@-strip cparser
+$(B)/$(CPARSER): $(MODULES)
+	@$(GENERATING)
+	@$(OCAML_LINK) -o $@ str.cmxa nums.cmxa $^
+	@-strip $@
 #ioXML.cmx 
 
+.PHONY: build
+build: $(B)/$(CPARSER)
+
+.PHONY: distribute
+distribute: $(DIST_ROOT)/$(CPARSER)
+
+$(DIST_ROOT)/$(CPARSER): $(B)/$(CPARSER)
+	cp $< $@
+
+.PHONY: clean
 clean:
 	rm -f *.cmi *.cmx *.o *.mli *.cil cparser.ml clexer.ml *.preprocessed cparser.exe cparser *.stackdump
 #make -C ioxml clean
