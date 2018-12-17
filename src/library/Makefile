@@ -30,7 +30,8 @@ $(B)/libc.so: $(LIBC_SRC)
 
 LIBSTDCXX_SRC := $(wildcard $(PROFILE_DIR)/compiler-src/*.C) $(foreach d,$(SUBPROFILE_DIRS),$(wildcard $(d)/compiler-src/*))
 
-$(B)/libstdc++.so: $(LIBSTDCXX_SRC) 
+LIBSTDCXX := $(B)/libstdc++.so
+$(LIBSTDCXX): $(LIBSTDCXX_SRC)
 	@$(GENERATING)
 	@cd $(PROFILE_DIR)/compiler-src && $(KCC) --use-profile $(PROFILE) -shared -o $@ *.C $(KCCFLAGS) -I .
 	@$(foreach d,$(SUBPROFILE_DIRS), \
