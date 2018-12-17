@@ -13,4 +13,5 @@ $(B)/CMakeCache.txt:
 build: $(B)/CMakeCache.txt
 	@echo Building
 	@cmake --build '$(B)'
-	@cp $(B)/clang-kast $(DIST_ROOT)
+	@mkdir -p $(DIST_ROOT)
+	@cp $(B)/clang-kast $(DIST_ROOT)/clang-kast

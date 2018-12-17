@@ -58,7 +58,7 @@ $(B)/kcc: $(B)/kcc.packages $(B)/writelong $(B)/RV_Kcc
 D := $(DIST_ROOT)
 FILES := ignored-flags merge-kcc-obj gccsymdump globalize-syms make-symbols make-trampolines split-kcc-obj program-runner
 
-TO_DIST := $(D) $(D)/kcc $(addprefix $(D)/,$(FILES))
+TO_DIST := $(D) $(D)/kcc $(D)/writelong $(addprefix $(D)/,$(FILES))
 
 .PHONY: dist
 dist: $(TO_DIST)
@@ -66,7 +66,7 @@ dist: $(TO_DIST)
 $(D):
 	@mkdir -p $@
 
-$(D)/kcc: $(B)/kcc
+$(D)/kcc $(D)/writelong: $(D)/%: $(B)/%
 	@$(GENERATING)
 	@cp $^ $@
 
