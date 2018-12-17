@@ -54,6 +54,7 @@ $(addsuffix /native-server,$(PROFILES)): %/native-server:
 $(addsuffix /semantics,$(PROFILES)): %/semantics:
 	@$(ECHO_OPEN)
 	@mkdir -p $(B)/$@
+	@$(MAKE) -C semantics PROFILE=$* PROFILE_DIR=$(PROFILES_DIR)/$* BUILD_DIR=$(B)/$@
 	@$(ECHO_CLOSE)
 
 #.PHONY: $(addsuffix /native-server,$(PROFILES))
