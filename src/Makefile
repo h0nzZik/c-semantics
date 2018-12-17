@@ -1,8 +1,4 @@
-ifeq ($(strip $(BUILD_DIR)),)
-  $(error Need BUILD_DIR)
-endif
-
-B := $(BUILD_DIR)
+include inc.mk
 
 SRCS := clang-tools cparser native-server kcc semantics
 
