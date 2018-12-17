@@ -16,6 +16,7 @@ our @EXPORT_OK = qw(
       profileDir
       distDir
       currentProfile
+      currentProfileDir
       defaultProfile
       getProfiles
       tempFile
@@ -79,12 +80,19 @@ sub profilesDir {
       return catfile($profs, @_);
 }
 
-sub profileDir {
-      state $prof = do {
+sub currentProfileDir {
+      state $dir;
+      if (scalar @_) {
+            ($dir) = normalize(rel2abs(@_));
+      }
+      $dir ||= do {
             normalize(profilesDir(currentProfile()));
       };
+      return $dir;
+}
 
-      return catfile($prof, @_);
+sub profileDir {
+      return catfile(currentProfileDir(), @_);
 }
 
 sub getProfiles {

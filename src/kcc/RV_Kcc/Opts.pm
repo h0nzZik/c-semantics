@@ -588,6 +588,10 @@ sub parseOpts {
                   exit 1;
             }
       }
+  --use-profile-directory <name>	Use a KCC profile from specified directory for this run. [undocumented]
+      {
+            RV_Kcc::Files::currentProfileDir($name);
+      }
   --no-license-message	Do not print any licensing information. Use this
                         option if extra output interferes with a build system.
                         Setting the environment error KCC_NO_LICENCE_MESSAGE
