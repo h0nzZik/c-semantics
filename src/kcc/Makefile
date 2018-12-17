@@ -31,12 +31,12 @@ $(B)/RV_Kcc/Files.pm $(B)/RV_Kcc/Shell.pm: $(B)/RV_Kcc/%: RV_Kcc/%
 
 $(B)/RV_Kcc: $(addprefix $(B)/RV_Kcc/,Opts.pm Files.pm Shell.pm)
 
-KCC_MODULES := $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
+KCC_MODULES := Opts.pm Files.pm Shell.pm
 
-$(B)/kcc.trace: kcc $(B)/RV_Kcc # $(KCC_MODULES) # $(B)/RV_Kcc/Opts.pm
+$(B)/kcc.trace: kcc $(addprefix $(B)/RV_Kcc/, $(KCC_MODULES))
 	@$(GENERATING)
 	@echo Tracing...
-	@$(FATPACK) trace --to=$@ --use=RV_Kcc/Files.pm kcc
+	@$(FATPACK) trace --to=$@ kcc
 
 $(B)/kcc.packages: $(B)/kcc.trace
 	@$(GENERATING)

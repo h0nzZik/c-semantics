@@ -26,14 +26,18 @@ our @EXPORT_OK = qw(
 
 use constant IS_CYGWIN    => $^O eq "cygwin" || $^O eq "msys";
 
+sub normalize {
+    my $d = shift;
+    if (IS_CYGWIN) {
+        $d = shell("cygpath -w $d")->stdout()->run();
+        chop($d);
+    }
+    $d;
+}
+
 sub distDir {
       state $distDirectory = do {
-            my $d = dirname(rel2abs($0));
-            if (IS_CYGWIN) {
-                  $d = shell("cygpath -w $d")->stdout()->run();
-                  chop($d);
-            }
-            $d;
+            normalize(dirname(rel2abs($0)));
       };
 
       return catfile($distDirectory, @_);
@@ -69,12 +73,7 @@ sub defaultProfile {
 
 sub profilesDir {
       state $profs = do {
-            my $d = distDir('profiles');
-            if (IS_CYGWIN) {
-                  $d = shell("cygpath -w $d")->stdout()->run();
-                  chop($d);
-            }
-            $d;
+            normalize(distDir('profiles'));
       };
 
       return catfile($profs, @_);
@@ -82,12 +81,7 @@ sub profilesDir {
 
 sub profileDir {
       state $prof = do {
-            my $d = profilesDir(currentProfile());
-            if (IS_CYGWIN) {
-                  $d = shell("cygpath -w $d")->stdout()->run();
-                  chop($d);
-            }
-            $d;
+            normalize(profilesDir(currentProfile()));
       };
 
       return catfile($prof, @_);
