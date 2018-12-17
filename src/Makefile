@@ -3,7 +3,7 @@ THIS_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 include inc.mk
 
 ifeq ($(strip $(PROFILES_DIR)),)
-  PROFILES_DIR := $(abspath $(THIS_DIR)/PROFILES)
+  PROFILES_DIR := $(abspath $(THIS_DIR)/profiles)
 endif
 
 ifeq ($(strip $(PROFILE)),)
@@ -21,7 +21,7 @@ SRCS := clang-tools cparser kcc native-server semantics
 test: $(addsuffix /all,$(PROFILES))
 
 .PHONY: default
-default: $(SRCS)
+default: clang-tools cparser kcc $(addsuffix /all,$(PROFILES))
 
 .PHONY: help
 help:
@@ -47,6 +47,7 @@ $(addsuffix /all,$(PROFILES)): %/all: %/native-server %/semantics %/library ;
 $(addsuffix /native-server,$(PROFILES)): %/native-server:
 	@$(ECHO_OPEN)
 	@mkdir -p $(B)/$@
+	@$(MAKE) -C native-server PROFILE=$* PROFILE_DIR=$(PROFILES_DIR)/$* BUILD_DIR=$(B)/$@
 	@$(ECHO_CLOSE)
 
 #.PHONY: $(addsuffix /native-server,$(PROFILES))

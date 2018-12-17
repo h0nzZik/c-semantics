@@ -1,11 +1,25 @@
-THIS_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-
 include ../inc.mk
 
-PROFILE := x86-gcc-limited-libc
-PROFILE_DIR := $(realpath $(THIS_DIR)/../profiles)/$(PROFILE)
+ifeq ($(strip $(PROFILE_DIR)),)
+  $(error Need PROFILE_DIR)
+endif
+
+CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
+
+SRC := $(notdir $(wildcard $(PROFILE_DIR)/native/*.c))
+OBJ := $(addprefix $(B)/,$(SRC:%.c=%.o))
+
+NATIVE_CC := gcc
 
 .PHONY: default
-default:
-	@mkdir -p $(B)/$(PROFILE)
-	@$(MAKE) -C src PROFILE=$(PROFILE) PROFILE_DIR=$(PROFILE_DIR) BUILD_DIR=$(B)
+default: $(B)/main.o $(OBJ)
+
+$(B)/main.o: main.c server.h
+	@$(GENERATING)
+	@$(NATIVE_CC) $(CFLAGS) -c $< -o $@  -g
+
+$(OBJ): $(B)/%.o: $(PROFILE_DIR)/native/%.c $(wildcard *.h)
+	@$(GENERATING)
+	@mkdir -p $(dir $@)
+	@$(NATIVE_CC) $(CFLAGS) -c $< -o $@ -I .
+

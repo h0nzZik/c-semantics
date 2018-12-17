@@ -13,7 +13,7 @@ endif
 B := $(BUILD_DIR)
 
 GENERATING = echo Creating $(@:$(BUILD_ROOT)/%=%)
-ECHO_OPEN  = echo "< $@>"
-ECHO_CLOSE = echo "</$@>"
+ECHO_OPEN  = echo "<  Building $@ >"
+ECHO_CLOSE = echo "</ Finished $@ >"
 
 include $(BUILD_ROOT)/deps/deps.mk
