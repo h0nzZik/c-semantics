@@ -61,4 +61,7 @@ $(addsuffix /semantics,$(PROFILES)): %/semantics:
 $(addsuffix /library,$(PROFILES)): %/library: dist-kcc
 	@$(ECHO_OPEN)
 	@mkdir -p $(B)/$@
+	$(eval PROFILE := $*)
+	$(eval KCC := $(DIST_ROOT)/kcc)
+	@$(MAKE) -C library KCC=$(KCC) PROFILE=$(PROFILE) PROFILE_DIR=$(PROFILES_DIR)/$(PROFILE) BUILD_DIR=$(B)/$@
 	@$(ECHO_CLOSE)
