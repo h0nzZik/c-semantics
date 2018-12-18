@@ -14,14 +14,25 @@ endif
 
 # clang-tools, cparser, and kcc are profile-independent.
 # native-server, semantics, and library depend on chosen profile
-SRCS := cparser kcc native-server semantics
+SRCS := kcc native-server semantics
 
 
 .PHONY: default
-default: $(CLANG_KAST)
+default: all
 
+# Provides:
+# - CLANG_KAST
+# - CLANG_SITES
 include clang-tools/Makefile
-B := $(BUILD_DIR) # to reset it again
+
+# Provides:
+# - CPARSER
+include cparser/Makefile
+
+# Reset it again
+B := $(BUILD_DIR)
+
+all: $(CLANG_KAST) $(CPARSER)
 
 .PHONY: test
 test: $(addsuffix /all,$(PROFILES))

@@ -12,7 +12,7 @@ endif
 
 B := $(BUILD_DIR)
 
-GENERATING = echo Creating $(@:$(BUILD_ROOT)/%=%)
+GENERATING = echo 'Creating $(@:$(BUILD_ROOT)/%=%)'; mkdir -p $(dir $@)
 ECHO_OPEN  = echo "<  Building $@ >"
 ECHO_CLOSE = echo "</ Finished $@ >"
 

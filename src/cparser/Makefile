@@ -1,59 +1,35 @@
-SRCD := $(CURDIR)
+# imports:
+# - BUILD_ROOT
+# exports:
+# - CPARSER
+# internal:
+# - CPARSER_*
 
-include ../inc.mk
+CPARSER_SRC := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+CPARSER_BUILD := $(BUILD_ROOT)/cparser
 
-ifneq ($(MAKECMDGOALS),clean)
-  ifeq ($(strip $(BUILD_DIR)),)
-    $(error Need BUILD_DIR)
-  endif
-endif
+S := $(CPARSER_SRC)
+B := $(CPARSER_BUILD)
 
+CPARSER_OCAML_LEX := ocamllex
+CPARSER_OCAML_YACC := ocamlyacc
+CPARSER_OCAMLOPT_FLAGS := -w a -warn-error a
+CPARSER_OCAML_COMPILE := ocamlfind ocamlopt -package camomile $(CPARSER_OCAMLOPT_FLAGS) -I $(B) -c
+CPARSER_OCAML_LINK := ocamlfind ocamlopt -package camomile -linkpkg $(CPARSER_OCAMLOPT_FLAGS) -I $(B)
 
-EXEEXT=
-# CIL_BASE = ../cil
-# CIL_PLATFORM ?= $(firstword $(shell ls $(CIL_BASE)/obj))
-# no warnings
-OCAMLOPT_FLAGS := -w a -warn-error a 
-# all warnings
-#OCAMLOPT_FLAGS = -w A -warn-error A
-
-# CIL = $(CIL_BASE)/obj/$(CIL_PLATFORM)
-
-OCAML_COMPILE := ocamlfind ocamlopt -package camomile $(OCAMLOPT_FLAGS) -I $(B) -c
-
-OCAML_LEX := ocamllex
-OCAML_YACC := ocamlyacc
-OCAML_LINK := ocamlfind ocamlopt -package camomile -linkpkg $(OCAMLOPT_FLAGS) -I $(B)
-
-# these are partially ordered by inclusion.  don't know how to avoid manually ordering these
-MODULES := $(addprefix $(B)/,base64.cmx errormsg.cmx longarray.cmx growArray.cmx escape.cmx cabshelper.cmx whitetrack.cmx cprint.cmx lexerhack.cmx cabs.cmx clexer.cmx cparser.cmx frontc.cmx xmlPrinter.cmx cabsDriver.cmx)
-
-#IOXML = ioxml/ioXML.cmx ioxml/pa_ioXML.cmo
-#ioxml
-
-.PHONY:
-default: distribute
-
-CPARSER := cparser$(EXEEXT)
-
-
-# $(IOXML): ioxml/ioXML.ml ioxml/ioXML.mli ioxml/pa_ioXML.ml
-# make -C ioxml all
-
-# xmlPrinter.ml: cabs.ml $(IOXML)
-# camlp5o ioxml/pa_ioXML.cmo pr_o.cmo -sep "\n\n" cabs.ml > xmlPrinter.tmp
-# sed -i '2 i open Cabs' xmlPrinter.tmp
-# mv xmlPrinter.tmp xmlPrinter.ml
-
-$(B)/clexer.ml: clexer.mll
+$(B)/clexer.ml: $(S)/clexer.mll
 	@$(BUILDING)
-	@$(OCAML_LEX) $< -o $@
+	@$(CPARSER_OCAML_LEX) $< -o $@
 
-$(B)/cparser.ml $(B)/cparser.mli: cparser.mly $(B)/cabs.cmx $(B)/cabshelper.cmx
+# Need a copy inside the build directory
+# because `ocamlyacc` does not support the `-o` switch.
+$(B)/cparser.mly: $(S)/cparser.mly
 	@$(BUILDING)
-	@$(OCAML_YACC) $<
-	@mv cparser.ml $(B)
-	@mv cparser.mli $(B)
+	@cp $< $@
+
+$(B)/cparser.ml $(B)/cparser.mli: $(B)/cparser.mly $(B)/cabs.cmx $(B)/cabshelper.cmx
+	@$(BUILDING)
+	@$(CPARSER_OCAML_YACC) $<
 
 $(B)/lexerhack.cmx  $(B)/lexerhack.cmi  : $(B)/errormsg.cmx
 $(B)/whitetrack.cmx $(B)/whitetrack.cmi : $(B)/cabs.cmx $(B)/cabshelper.cmx
@@ -70,35 +46,30 @@ $(B)/xmlPrinter.cmx $(B)/xmlPrinter.cmi : $(B)/cabs.cmx $(B)/escape.cmx
 
 $(B)/clexer.cmx $(B)/cparser.cmx: $(B)/%.cmx: $(B)/%.ml
 	@$(GENERATING)
-	@$(OCAML_COMPILE) $< -o $@
+	@$(CPARSER_OCAML_COMPILE) $< -o $@
 
-$(B)/%.cmx: %.ml 
+$(B)/%.cmx: $(S)/%.ml
 	@$(GENERATING)
-	@$(OCAML_COMPILE) $*.ml -o $@
+	@$(CPARSER_OCAML_COMPILE) $< -o $@
 	
 $(B)/cparser.cmi: $(B)/cparser.mli $(B)/cabs.cmx $(B)/clexer.ml
 	@$(GENERATING)
-	@$(OCAML_COMPILE) $(B)/cparser.mli -o $@
+	@$(CPARSER_OCAML_COMPILE) $< -o $@
 	
 $(B)/cabsDriver.cmx $(B)/cabsDriver.cmi: $(B)/xmlPrinter.cmx
 
 
-$(B)/$(CPARSER): $(MODULES)
+# these are partially ordered by inclusion.  don't know how to avoid manually ordering these
+CPARSER_MODULES := base64.cmx errormsg.cmx longarray.cmx growArray.cmx escape.cmx cabshelper.cmx whitetrack.cmx cprint.cmx lexerhack.cmx cabs.cmx clexer.cmx cparser.cmx frontc.cmx xmlPrinter.cmx cabsDriver.cmx
+
+$(B)/cparser: $(addprefix $(B)/,$(CPARSER_MODULES))
 	@$(GENERATING)
-	@$(OCAML_LINK) -o $@ str.cmxa nums.cmxa $^
+	@$(CPARSER_OCAML_LINK) -o $@ str.cmxa nums.cmxa $^
 	@-strip $@
-#ioXML.cmx 
 
-.PHONY: build
-build: $(B)/$(CPARSER)
+# Exports
+CPARSER := $(CPARSER_BUILD)/cparser
 
-.PHONY: distribute
-distribute: $(DIST_ROOT)/$(CPARSER)
-
-$(DIST_ROOT)/$(CPARSER): $(B)/$(CPARSER)
-	cp $< $@
-
-.PHONY: clean
-clean:
-	rm -f *.cmi *.cmx *.o *.mli *.cil cparser.ml clexer.ml *.preprocessed cparser.exe cparser *.stackdump
-#make -C ioxml clean
+# Cleanup
+undefine B
+undefine S
