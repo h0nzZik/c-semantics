@@ -1,17 +1,28 @@
-include ../inc.mk
+# imports:
+# - BUILD_ROOT
+# exports:
+# - CLANG_KAST
+# - CLANG_SITES
 
-CMAKE_FLAGS := -DLLVM_PATH='$(LLVM_PATH)' -DCMAKE_CXX_FLAGS=-fno-rtti
-
-.PHONY: default
-default: build
+CLANG_TOOLS_SRC := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))/src
+CLANG_TOOLS_BUILD := $(BUILD_ROOT)/clang-tools
+B := $(CLANG_TOOLS_BUILD)
 
 $(B)/CMakeCache.txt:
 	@$(GENERATING)
-	@cmake $(CMAKE_FLAGS) -B'$(B)' -H./src
+	@mkdir -p $@
+	@cmake -DLLVM_PATH='$(LLVM_PATH)' -DCMAKE_CXX_FLAGS=-fno-rtti -B '$(B)' -H '$(CLANG_TOOLS_SRC)'
 
-.PHONY: build
-build: $(B)/CMakeCache.txt
-	@echo Building
-	@cmake --build '$(B)'
-	@mkdir -p $(DIST_ROOT)
-	@cp $(B)/clang-kast $(DIST_ROOT)/clang-kast
+$(B)/clang-kast $(B)/clang-sites: $(B)/%: $(B)/CMakeCache.txt
+	@$(GENERATING)
+	@echo Building clang-kast and clang-sites
+	@cmake --build '$(B)' --target '$*'
+
+# Exported variables
+CLANG_KAST := $(CLANG_TOOLS_BUILD)/clang-kast
+CLANG_SITES := $(CLANG_TOOLS_BUILD)/clang-sites
+
+# Clean private variables
+undefine B
+undefine CLANG_TOOLS_SRC
+undefine CLANG_TOOLS_BUILD

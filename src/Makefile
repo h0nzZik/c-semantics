@@ -2,6 +2,8 @@ THIS_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 include inc.mk
 
+# List of all targets I really want to build.
+
 ifeq ($(strip $(PROFILES_DIR)),)
   PROFILES_DIR := $(abspath $(THIS_DIR)/profiles)
 endif
@@ -12,16 +14,20 @@ endif
 
 # clang-tools, cparser, and kcc are profile-independent.
 # native-server, semantics, and library depend on chosen profile
-SRCS := clang-tools cparser kcc native-server semantics
+SRCS := cparser kcc native-server semantics
 
-# TODO make kcc depend on clang-tools and cparser,
-# and make it one target
+
+.PHONY: default
+default: $(CLANG_KAST)
+
+include clang-tools/Makefile
+B := $(BUILD_DIR) # to reset it again
 
 .PHONY: test
 test: $(addsuffix /all,$(PROFILES))
 
-.PHONY: default
-default: clang-tools cparser kcc $(addsuffix /all,$(PROFILES))
+#.PHONY: default
+#default: cparser kcc $(addsuffix /all,$(PROFILES))
 
 .PHONY: help
 help:
@@ -32,13 +38,13 @@ help:
 .PHONY: $(SRCS)
 $(SRCS):
 	@echo "< Building project '$@'>"
-	@mkdir -p $(B)/$@
-	@$(MAKE) -C $@ BUILD_DIR=$(B)/$@
+	@mkdir -p $(BUILD_DIR)/$@
+	@$(MAKE) -C $@ BUILD_DIR=$(BUILD_DIR)/$@
 	@echo "</Building project '$@'>"
 
 
 .PHONY: dist-kcc
-dist-kcc: clang-tools cparser kcc
+dist-kcc: cparser kcc
 
 #.PHONY: $(addsuffix /all,$(PROFILES))
 $(addsuffix /all,$(PROFILES)): %/all: %/native-server %/semantics %/library ;
