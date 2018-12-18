@@ -29,10 +29,14 @@ include clang-tools/Makefile
 # - CPARSER
 include cparser/Makefile
 
+# Provides:
+# - KCC
+include kcc/Makefile
+
 # Reset it again
 B := $(BUILD_DIR)
 
-all: $(CLANG_KAST) $(CPARSER)
+all: $(CLANG_KAST) $(CPARSER) $(KCC)
 
 .PHONY: test
 test: $(addsuffix /all,$(PROFILES))
@@ -40,18 +44,18 @@ test: $(addsuffix /all,$(PROFILES))
 #.PHONY: default
 #default: cparser kcc $(addsuffix /all,$(PROFILES))
 
-.PHONY: help
-help:
-	@echo 'Targets: $(SRCS)'
-	@echo 'Varibles:'
-	@echo 'PROFILES_DIR := $(PROFILES_DIR)'
+#.PHONY: help
+#help:
+#	@echo 'Targets: $(SRCS)'
+#	@echo 'Varibles:'
+#	@echo 'PROFILES_DIR := $(PROFILES_DIR)'
 
-.PHONY: $(SRCS)
-$(SRCS):
-	@echo "< Building project '$@'>"
-	@mkdir -p $(BUILD_DIR)/$@
-	@$(MAKE) -C $@ BUILD_DIR=$(BUILD_DIR)/$@
-	@echo "</Building project '$@'>"
+#.PHONY: $(SRCS)
+#$(SRCS):
+#	@echo "< Building project '$@'>"
+#	@mkdir -p $(BUILD_DIR)/$@
+#	@$(MAKE) -C $@ BUILD_DIR=$(BUILD_DIR)/$@
+#	@echo "</Building project '$@'>"
 
 
 .PHONY: dist-kcc
