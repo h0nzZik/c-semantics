@@ -53,12 +53,12 @@ endif
 
 default: regenerate
 
-$(B)/k:
+$(B)/k: system.git
 	@echo 'Obtaining K from $(K_REPO)'
 	@git clone --recursive --depth 1 --single-branch --branch $(K_BRANCH) $(K_REPO) $(B)/k
 	@cd $(B)/k; git checkout $(K_COMMIT)
 
-$(OUR_K_BIN): $(B)/k
+$(OUR_K_BIN): $(B)/k system.java
 	@echo 'Building K'
 	@cd $(B)/k && mvn package -q -DskipTests -U
 

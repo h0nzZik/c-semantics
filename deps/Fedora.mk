@@ -1,14 +1,19 @@
 # Public:
 # * system.all
+# * system.java
+# * system.git
 
 .PHONY: system.all
-system.all: system.ffi system.flex system.java system.mpfr system.gmp system.ocaml system.z3
+system.all: system.ffi system.flex system.git system.java system.mpfr system.gmp system.ocaml system.perl system.z3
 
 .PHONY: system.ffi
 system.ffi: /usr/include/ffi.h
 
 .PHONY: system.flex
 system.flex: /usr/bin/flex
+
+.PHONY: system.git
+system.git: /usr/bin/git
 
 .PHONY: system.gmp
 system.gmp: /usr/include/gmp.h
@@ -21,6 +26,9 @@ system.mpfr: /usr/include/mpfr.h
 
 .PHONY: system.ocaml
 system.ocaml: /usr/bin/opam /usr/bin/ocaml
+
+.PHONY: system.perl
+system.perl: /usr/bin/perl
 
 .PHONY: system.z3
 system.z3: /usr/include/z3/z3.h /usr/bin/z3
@@ -57,3 +65,6 @@ system.z3: /usr/include/z3/z3.h /usr/bin/z3
 
 /usr/bin/perl:
 	sudo dnf install -y perl
+
+/usr/bin/git:
+	sudo dnf install -y git

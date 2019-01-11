@@ -2,6 +2,13 @@ ifeq ($(strip $(BUILD_DIR)),)
   $(error Need BUILD_DIR)
 endif
 
+default:
+
+include cdecl/Makefile
+include clang/Makefile
+include k/Makefile
+include perl/Makefile
+
 B := $(BUILD_DIR)
 
 DEPS := cdecl clang k perl
@@ -20,8 +27,11 @@ $(DEPS):
 	$(MAKE) -C $@ BUILD_DIR=$(B)/$@
 	@echo "</Building dependency '$@'>"
 
-regenerate:
-	@rm -f $(B)/deps.mk
+$(BUILD_DIR)/deps.mk: FORCE
+	@rm -f $@
 	@echo $(DEPS)
-	@cp deps.mk $(B)/deps.mk
-	@for d in $(DEPS); do echo include '$$(BUILD_ROOT)/deps'/$$d/deps.mk >> $(B)/deps.mk; done
+	@cp deps.mk $@
+	@for d in $(DEPS); do echo include '$$(BUILD_ROOT)/deps'/$$d/deps.mk >> $@; done
+
+
+FORCE:
