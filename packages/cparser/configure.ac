@@ -1,7 +1,7 @@
 # Autoconf requirements
 
 # AC_INIT
-AC_INIT
+AC_INIT([com.runtimeverification.rv-match.cparser], [1.0])
 
 # Information on the packages
 
@@ -16,6 +16,7 @@ AC_INIT
 # Checks for structures
 
 # Checks for compiler characteristics
+AC_PROG_CC
 
 # Checks for library functions
 
