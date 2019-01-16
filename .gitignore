@@ -9,3 +9,4 @@ semantics/.build
 scripts/cdecl-*
 deps/cdecl/cdecl-*
 .vagrant
+autom4te.cache
