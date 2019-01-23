@@ -6,7 +6,7 @@
   "command": "/bin/sh -c 'echo hello world'",
   "modules": [
     {
-      "name": "clang-lib",
+      "name": "org.llvm.clang",
       "buildsystem": "simple",
       "build-commands": [
         "echo ahoj"
@@ -16,6 +16,19 @@
           "type": "archive",
           "url": "http://releases.llvm.org/3.9.1/clang+llvm-3.9.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz",
           "sha256": "99d1ffd4be8fd3331b4d2478ada7ee6ed352729bfe4a1070450cdb9a3ce8ef9b"
+        }
+      ]
+    },
+    {
+      "name": "org.kframework.k",
+      "buildsystem": "simple",
+      "build-commands": [
+        "mvn package -Dmaven.test.skip=true"
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/kframework/k.git"
         }
       ]
     }

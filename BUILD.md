@@ -25,3 +25,5 @@ flatpak install flathub org.freedesktop.Platform//18.08 org.freedesktop.Sdk//18.
 ```
 flatpak-builder --force-clean build-dir com.runtimeverification.rv-match.json
 ```
+
+# TODO depends on Maven
