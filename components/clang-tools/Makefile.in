@@ -4,7 +4,6 @@ NCurses_Version := 6.1-20190121
 srcdir = @srcdir@
 VPATH = @srcdir@
 
-
 Clang_Architecture := x86_64-linux-gnu-ubuntu-16.04
 Clang_Dir := clang+llvm-$(Clang_Version)-$(Clang_Architecture)
 Clang_Archive := $(Clang_Dir).tar.xz
@@ -23,12 +22,6 @@ default: clang-tools/clang-kast
 
 .PHONY: deps
 deps: $(Clang_Dir) $(NCurses_libncurses)
-
-# Do not use '$<' except in implicit rules. But use: '$(srcdir)/file.txt'
-
-# TODO: (1) download particular version of ncurses
-# (2) once unpacked, there is no need to unpack it again.
-# (3) build ncurses
 
 $(Clang_Archive):
 	@echo Downloading $@
@@ -59,7 +52,6 @@ clang-tools/CMakeCache.txt: $(srcdir)/src/CMakeLists.txt deps
 clang-tools/clang-kast clang-tools/clang-sites: clang-tools/%: clang-tools/CMakeCache.txt
 	@echo Building $@
 	@cmake --build $(dir $@) --target $*
-
 
 install:
 	cd $(NCurses_Dir) && make install
