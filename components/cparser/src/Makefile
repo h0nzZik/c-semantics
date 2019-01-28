@@ -1,22 +1,25 @@
-# TODO vpath, srcdir
-#
+VPATH := $(srcdir)
+
+$(info srcdir: $(srcdir))
+$(info pwd: $(shell pwd))
+
+
 OCAML_LEX := ocamllex
 OCAML_YACC := ocamlyacc
 OCAMLOPT_FLAGS := -w a -warn-error a
-OCAML_COMPILE := ocamlfind ocamlopt -package camomile $(OCAMLOPT_FLAGS) -I $(B) -c
-OCAML_LINK := ocamlfind ocamlopt -package camomile -linkpkg $(OCAMLOPT_FLAGS) -I $(B)
+OCAML_COMPILE := ocamlfind ocamlopt -package camomile $(OCAMLOPT_FLAGS) -I $(shell pwd) -c
+OCAML_LINK := ocamlfind ocamlopt -package camomile -linkpkg $(OCAMLOPT_FLAGS) -I $(shell pwd)
 
 
 .PHONY: default
 default: cparser
 
 clexer.ml: $(srcdir)/clexer.mll
-	@echo Target $@
-	@$(OCAML_LEX) $< -o $@
+	$(OCAML_LEX) $(srcdir)/clexer.mll -o $@
 
 cparser.ml cparser.mli: $(srcdir)/cparser.mly cabs.cmx cabshelper.cmx
-	@echo Target $@
-	@$(OCAML_YACC) $<
+	cp $(srcdir)/cparser.mly .
+	$(OCAML_YACC) cparser.mly
 
 lexerhack.cmx  lexerhack.cmi  : errormsg.cmx
 whitetrack.cmx whitetrack.cmi : cabs.cmx cabshelper.cmx
@@ -32,17 +35,13 @@ clexer.cmx     clexer.cmi     : lexerhack.cmx cparser.cmx cprint.cmx cabshelper.
 xmlPrinter.cmx xmlPrinter.cmi : cabs.cmx escape.cmx
 
 clexer.cmx cparser.cmx: %.cmx: %.ml
-	@echo Target $@
-	@$(OCAML_COMPILE) $< -o $@
+	$(OCAML_COMPILE) $< -o $@
 
 %.cmx: $(srcdir)/%.ml
-	@echo Target $@
-	@echo from $<
-	@$(OCAML_COMPILE) $< -o $@
+	$(OCAML_COMPILE) $< -o $@
 	
 cparser.cmi: cparser.mli cabs.cmx clexer.ml
-	@echo Target $@
-	@$(OCAML_COMPILE) $< -o $@
+	$(OCAML_COMPILE) $< -o $@
 	
 cabsDriver.cmx cabsDriver.cmi: xmlPrinter.cmx
 
@@ -51,8 +50,7 @@ cabsDriver.cmx cabsDriver.cmi: xmlPrinter.cmx
 MODULES := base64.cmx errormsg.cmx longarray.cmx growArray.cmx escape.cmx cabshelper.cmx whitetrack.cmx cprint.cmx lexerhack.cmx cabs.cmx clexer.cmx cparser.cmx frontc.cmx xmlPrinter.cmx cabsDriver.cmx
 
 cparser: $(addprefix ,$(MODULES))
-	@echo Target $@
-	@$(OCAML_LINK) -o $@ str.cmxa nums.cmxa $^
-	@-strip $@
+	$(OCAML_LINK) -o $@ str.cmxa $^
+	-strip $@
 
 
