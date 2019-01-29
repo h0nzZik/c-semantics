@@ -1,0 +1,74 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+# So in this Makefile we should only download the dependencies.
+# And perl modules. The real Makefile will be in the `src/` directory.
+cpanm:
+	wget -O $@ 'http://cpanmin.us/'
+	chmod +x $@
+	mkdir -p $@.dir
+
+PERL_MODULES :=
+PERL_MODULES += Getopt::Declare
+PERL_MODULES += String::Escape
+PERL_MODULES += String::ShellQuote
+PERL_MODULES += App::FatPacker
+PERL_MODULES += UUID::Tiny
+
+.PHONY: deps
+deps: $(CPANM_EXECUTABLE)
+	@$(CPANM) $(PERL_MODULES)
+
+
+
+.PHONY: default
+default: kcc
+
+cdecl-%/src/cdecl: $(srcdir)/deps/cdecl-%.tar.gz
+	@echo "Building cdecl"
+	tar -xvf $(srcdir)/deps/cdecl-$*.tar.gz && cd cdecl-$* && ./configure --without-readline --disable-term-columns && $(MAKE)
+
+cdecl: cdecl-3.6/src/cdecl
+	cp $< .
+	strip cdecl
+
+WRITELONG_CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
+
+writelong: $(srcdir)/writelong.c
+	@$(GENERATING)
+	@gcc $(WRITELONG_CFLAGS) $(srcdir)/writelong.c -o  $@
+	@-strip $@
+
+RV_Kcc/Opts.pm: $(srcdir)/RV_Kcc/Opts.pm $(srcdir)/getopt.pl
+	@$(GENERATING)
+	@cat $< | perl $(srcdir)/getopt.pl > $@
+
+RV_Kcc/Files.pm RV_Kcc/Shell.pm: RV_Kcc/%: $(srcdir)/RV_Kcc/%
+	@$(GENERATING)
+	@cp $^ $@
+
+RV_Kcc: | $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
+
+#TODO make this a 'real' dependency
+FATPACK := $(BUILD_LOCAL_PERL)/bin/fatpack
+
+
+MODULES := Opts.pm Files.pm Shell.pm
+
+kcc.trace: $(srcdir)/kcc $(addprefix RV_Kcc/, $(MODULES))
+	@$(GENERATING)
+	@$(FATPACK) trace --to=$@ $(srcdir)/kcc
+
+kcc.packages: kcc.trace
+	@$(GENERATING)
+	@export PERL5LIB=$(dir $@):$$PERL5LIB && $(FATPACK) packlists-for `cat $<` > $@
+
+kcc: cdecl kcc.packages writelong RV_Kcc
+	@$(GENERATING)
+	@cd $(dir $@) && $(FATPACK) tree $(shell cat $<)
+	@cp -rf $(BUILD_DIR)/RV_Kcc $(BUILD_DIR)/fatlib
+	@cd $(dir $@) && $(FATPACK) file $(srcdir)/kcc > $@
+	@chmod --reference=$(srcdir)/kcc $@
+
+
+

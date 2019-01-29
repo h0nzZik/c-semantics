@@ -46,6 +46,14 @@
 #
 
 
+Jake tedy mame zdrojove veci?
+rv-kcc
+semantics
+profile/A,B,C
+c-parser
+cpp-parser
+
+
 # File system hierarchy standard
 #
 #
@@ -56,3 +64,8 @@
 # and then switch them for master branches.
 # Talk with Dwight about this.
 
+
+1. Things we need to build everything. Probably wget, git, make, maven, autoconf. etc.
+Every component needs to specify its dependencies (DEPS.md). No! Tools that are needed to build it. Build time dependencies, in BUILD.md. Then the toplevel build script
+
+2. Things we need to run kcc

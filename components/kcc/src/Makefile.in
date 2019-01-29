@@ -1,0 +1,67 @@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+SRC_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR := $(abspath $(BUILD_ROOT)/kcc/build)
+DIST_DIR := $(abspath $(BUILD_ROOT)/kcc/dist)
+
+B := $(BUILD_DIR)
+S := $(SRC_DIR)
+
+#TODO make this a 'real' dependency
+FATPACK := $(BUILD_LOCAL_PERL)/bin/fatpack
+
+WRITELONG_CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
+
+writelong: $(S)/writelong.c
+	@$(GENERATING)
+	@gcc $(WRITELONG_CFLAGS) $< -o  $@
+
+RV_Kcc/Opts.pm: $(S)/RV_Kcc/Opts.pm $(S)/getopt.pl
+	@$(GENERATING)
+	@cat $< | perl $(SRC_DIR)/getopt.pl > $@
+
+RV_Kcc/Files.pm RV_Kcc/Shell.pm: RV_Kcc/%: $(S)/RV_Kcc/%
+	@$(GENERATING)
+	@cp $^ $@
+
+RV_Kcc: | $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
+
+MODULES := Opts.pm Files.pm Shell.pm
+
+kcc.trace: $(S)/kcc $(addprefix RV_Kcc/, $(MODULES))
+	@$(GENERATING)
+	@$(FATPACK) trace --to=$@ $(SRC_DIR)/kcc
+
+kcc.packages: kcc.trace
+	@$(GENERATING)
+	@export PERL5LIB=$(dir $@):$$PERL5LIB && $(FATPACK) packlists-for `cat $<` > $@
+
+kcc: kcc.packages writelong RV_Kcc
+	@$(GENERATING)
+	@cd $(dir $@) && $(FATPACK) tree $(shell cat $<)
+	@cp -rf $(BUILD_DIR)/RV_Kcc $(BUILD_DIR)/fatlib
+	@cd $(dir $@) && $(FATPACK) file $(SRC_DIR)/kcc > $@
+	@chmod --reference=$(SRC_DIR)/kcc $@
+
+########################
+##### Distribution #####
+########################
+
+FILES_TO_DIST := ignored-flags merge-kcc-obj gccsymdump globalize-syms make-symbols make-trampolines split-kcc-obj program-runner
+DIST_DIR_FILES := $(addprefix $(DIST_DIR)/,$(FILES_TO_DIST))
+
+$(DIST_DIR)/writelong: $(DIST_DIR)/%: %
+	@$(GENERATING)
+	@cp $^ $@
+
+$(DIST_DIR_FILES): $(DIST_DIR)/%: $(S)/%
+	@$(GENERATING)
+	@cp $^ $@
+
+$(DIST_DIR): | $(DIST_DIR_FILES) $(DIST_DIR)/writelong
+
+$(DIST_DIR)/kcc: $(BUILD_DIR)/kcc | $(DIST_DIR)
+	@$(GENERATING)
+	@cp $< $@
+
