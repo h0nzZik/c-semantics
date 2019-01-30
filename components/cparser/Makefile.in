@@ -1,6 +1,6 @@
 SHELL = /bin/sh
 
-export srcdir = @srcdir@/src
+srcdir = @srcdir@
 export OPAMROOT := $(shell pwd)/.opam
 
 OCAMLFIND := $(OPAMROOT)/default/bin/ocamlfind
@@ -20,4 +20,4 @@ $(OCAMLFIND): $(OPAMROOT)
 
 .PHONY: all
 all: $(OCAMLFIND)
-	opam config exec -- make -f $(srcdir)/Makefile
+	opam config exec -- sh -c 'cd src; $(MAKE)'

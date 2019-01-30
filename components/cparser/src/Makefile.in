@@ -1,5 +1,5 @@
 SHELL = /bin/sh
-VPATH := $(srcdir)
+srcdir := @srcdir@
 
 OCAML_LEX := ocamllex
 OCAML_YACC := ocamlyacc

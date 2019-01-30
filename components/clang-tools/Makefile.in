@@ -3,7 +3,6 @@ NCurses_Version := 6.1-20190121
 
 SHELL = /bin/sh
 srcdir = @srcdir@
-VPATH = @srcdir@
 
 Clang_Architecture := x86_64-linux-gnu-ubuntu-16.04
 Clang_Dir := clang+llvm-$(Clang_Version)-$(Clang_Architecture)
