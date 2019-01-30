@@ -1,3 +1,5 @@
+SHELL = /bin/sh
+
 export srcdir = @srcdir@/src
 export OPAMROOT := $(shell pwd)/.opam
 

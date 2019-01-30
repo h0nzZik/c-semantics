@@ -1,8 +1,5 @@
+SHELL = /bin/sh
 VPATH := $(srcdir)
-
-$(info srcdir: $(srcdir))
-$(info pwd: $(shell pwd))
-
 
 OCAML_LEX := ocamllex
 OCAML_YACC := ocamlyacc

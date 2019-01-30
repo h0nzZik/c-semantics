@@ -1,6 +1,7 @@
 Clang_Version := 3.9.1
 NCurses_Version := 6.1-20190121
 
+SHELL = /bin/sh
 srcdir = @srcdir@
 VPATH = @srcdir@
 
