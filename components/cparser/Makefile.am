@@ -1,9 +1,9 @@
 SHELL = /bin/sh
 
 srcdir = @srcdir@
-export OPAMROOT := $(shell pwd)/.opam
+export OPAMROOT = $(CURDIR)/.opam
 
-OCAMLFIND := $(OPAMROOT)/default/bin/ocamlfind
+OCAMLFIND = $(OPAMROOT)/default/bin/ocamlfind
 
 .PHONY: default
 default: all
