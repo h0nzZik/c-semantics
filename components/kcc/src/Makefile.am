@@ -7,7 +7,7 @@ default: kcc
 
 # TODO autoconf may require gnu11 or C11
 # and it will generate the right flags
-WRITELONG_CFLAGS := -std=gnu11 -Wall -Wextra -Werror -pedantic
+WRITELONG_CFLAGS = -std=gnu11 -Wall -Wextra -Werror -pedantic
 
 writelong: $(srcdir)/writelong.c
 	gcc $(WRITELONG_CFLAGS) $< -o  $@
@@ -22,7 +22,7 @@ RV_Kcc/Files.pm RV_Kcc/Shell.pm: RV_Kcc/%: $(srcdir)/RV_Kcc/%
 
 RV_Kcc: | $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
 
-MODULES := Opts.pm Files.pm Shell.pm
+MODULES = Opts.pm Files.pm Shell.pm
 
 kcc.trace: $(srcdir)/kcc.pl $(addprefix RV_Kcc/, $(MODULES))
 	fatpack trace --to=$@ $(srcdir)/kcc.pl
@@ -41,13 +41,13 @@ kcc: kcc.packages writelong #RV_Kcc
 ###### Distribution #####
 #########################
 #
-#FILES_TO_DIST := ignored-flags merge-kcc-obj gccsymdump globalize-syms make-symbols make-trampolines split-kcc-obj program-runner
+#FILES_TO_DIST = ignored-flags merge-kcc-obj gccsymdump globalize-syms make-symbols make-trampolines split-kcc-obj program-runner
 #
 #
 #
-#DIST_DIR := $(abspath $(BUILD_ROOT)/kcc/dist)
+#DIST_DIR = $(abspath $(BUILD_ROOT)/kcc/dist)
 #
-#DIST_DIR_FILES := $(addprefix $(DIST_DIR)/,$(FILES_TO_DIST))
+#DIST_DIR_FILES = $(addprefix $(DIST_DIR)/,$(FILES_TO_DIST))
 #
 #$(DIST_DIR)/writelong: $(DIST_DIR)/%: %
 #	@$(GENERATING)

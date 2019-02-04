@@ -1,7 +1,3 @@
-SHELL = /bin/sh
-srcdir = @srcdir@
-VPATH = @srcdir@
-
 .PHONY: default
 default: all
 
