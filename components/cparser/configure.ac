@@ -1,5 +1,6 @@
 AC_INIT([com.runtimeverification.rv-match.cparser], [1.0])
-
+AC_CONFIG_AUX_DIR([auxdir])
+AM_INIT_AUTOMAKE([no-dependencies])
 
 AC_PROG_CC
 

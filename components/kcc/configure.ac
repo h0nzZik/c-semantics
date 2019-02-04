@@ -1,5 +1,6 @@
 AC_INIT([com.runtimeverification.rv-match.kcc], [1.0])
-AM_INIT_AUTOMAKE([kcc], [1.0])
+AC_CONFIG_AUX_DIR([auxdir])
+AM_INIT_AUTOMAKE([no-dependencies])
 # lex and yacc needed for cdecl
 AC_PROG_LEX
 AC_PROG_YACC
