@@ -10,3 +10,6 @@ scripts/cdecl-*
 deps/cdecl/cdecl-*
 .vagrant
 autom4te.cache
+configure
+auxdir
+aclocal.m4
