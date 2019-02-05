@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I m4
+
 lib_LTLIBRARIES = libserver.la
 libserver_la_SOURCES = main.c server.h
 
