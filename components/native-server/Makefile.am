@@ -1,7 +1,9 @@
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libserver.la
-libserver_la_SOURCES = main.c server.h
+libserver_la_SOURCES = main.c server.h platform.h
+
+#TODO the server may dlopen individual platform-specific plugins.
 
 #include ../inc.mk
 #
