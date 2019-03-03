@@ -9,8 +9,19 @@ semantics/.build
 scripts/cdecl-*
 deps/cdecl/cdecl-*
 .vagrant
+
+# Autoconf
+config.log
+config.status
 autom4te.cache
-configure
 auxdir
 aclocal.m4
 m4
+
+# Libraries
+*.o
+*.lo
+*.la
+
+# Other
+.opam
