@@ -1,8 +1,18 @@
+srcdir = @srcdir@
+
 .PHONY: default
 default: all
 
-CDECL = cdecl-3-6
-$(CDECL)/src/cdecl: $(srcdir)/deps/$(CDECL).tar.gz
+
+#export PATH = $(CURDIR)/perl5/bin:$(PATH)
+export PERL5LIB = $(CURDIR)/perl5/lib/perl5
+
+
+#$(CDECL)/src/cdecl: $(srcdir)/deps/$(CDECL).tar.gz
+
+CDECL = cdecl-3.6
+
+cdecl-3.6/src/cdecl: $(srcdir)/deps/$(CDECL).tar.gz
 	@echo "Building cdecl"
 	tar -xvf $(srcdir)/deps/$(CDECL).tar.gz && cd $(CDECL) && ./configure --without-readline --disable-term-columns && $(MAKE)
 
@@ -10,16 +20,14 @@ cdecl: cdecl-3.6/src/cdecl
 	cp $< .
 	strip cdecl
 
+
+CPANM = $(CURDIR)/cpanm --local-lib=$(CURDIR)/perl5
+
 # So in this Makefile we should only download the dependencies.
 # And perl modules. The real Makefile will be in the `src/` directory.
 cpanm:
 	wget -O $@ 'http://cpanmin.us/'
 	chmod +x $@
-
-export PATH = $(CURDIR)/perl5/bin:$(PATH)
-export PERL5LIB = $(CURDIR)/perl5/lib/perl5
-
-CPANM = $(CURDIR)/cpanm --local-lib=$(CURDIR)/perl5
 
 perl5: cpanm
 	$(CPANM) --install local::lib SelfLoader Test
@@ -37,7 +45,7 @@ perl-modules: perl5
 
 .PHONY: all
 all: cdecl perl-modules
-	cd src && $(MAKE)
+	cd src && env PATH=$(CURDIR)/../perl5/bin:$$PATH $(MAKE)
 
 
 # dependency: perl-devel

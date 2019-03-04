@@ -18,6 +18,12 @@ auxdir
 aclocal.m4
 m4
 
+# Automake
+# Do not write `Makefile.in` manually,
+# but always use Automake to generate it.
+Makefile.in
+# The same with Makefiles
+
 # Libraries
 *.o
 *.lo

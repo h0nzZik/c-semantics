@@ -1,4 +1,3 @@
-SHELL = /bin/sh
 srcdir = @srcdir@
 
 .PHONY: default
@@ -13,26 +12,29 @@ writelong: $(srcdir)/writelong.c
 	gcc $(WRITELONG_CFLAGS) $< -o  $@
 
 RV_Kcc/Opts.pm: $(srcdir)/RV_Kcc/Opts.pm $(srcdir)/getopt.pl
-	@mkdir -p $(dir $@)
+	@mkdir -p RV_Kcc
 	cat $< | perl $(srcdir)/getopt.pl > $@
 
 RV_Kcc/Files.pm RV_Kcc/Shell.pm: RV_Kcc/%: $(srcdir)/RV_Kcc/%
-	@mkdir -p $(dir $@)
+	@mkdir -p RV_Kcc
 	@cp $^ $@
 
-RV_Kcc: | $(addprefix RV_Kcc/,Opts.pm Files.pm Shell.pm)
 
-MODULES = Opts.pm Files.pm Shell.pm
+MODULES = RV_Kcc/Opts.pm RV_Kcc/Files.pm RV_Kcc/Shell.pm
 
-kcc.trace: $(srcdir)/kcc.pl $(addprefix RV_Kcc/, $(MODULES))
+RV_Kcc: | $(MODULES)
+
+
+kcc.trace: $(srcdir)/kcc.pl $(MODULES)
 	fatpack trace --to=$@ $(srcdir)/kcc.pl
 
 kcc.packages: kcc.trace
-	export PERL5LIB=$(dir $@):$$PERL5LIB && fatpack packlists-for `cat $<` > $@
+	export PERL5LIB=$(CURDIR):$$PERL5LIB && fatpack packlists-for `cat $<` > $@
 
 kcc: kcc.packages writelong #RV_Kcc
 	@echo Fatpacking kcc
-	fatpack tree $(shell cat $<)
+	@echo `cat kcc.packages`
+	fatpack tree `cat kcc.packages`
 	cp -rf RV_Kcc fatlib
 	fatpack file $(srcdir)/kcc.pl > $@
 	chmod --reference=$(srcdir)/kcc.pl $@
