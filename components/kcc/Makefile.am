@@ -18,6 +18,7 @@ cdecl: cdecl-3.6/src/cdecl
 
 CPANM = $(CURDIR)/cpanm --local-lib=$(CURDIR)/perl5
 
+# TODO what if download fails?
 # So in this Makefile we should only download the dependencies.
 # And perl modules. The real Makefile will be in the `src/` directory.
 cpanm:
