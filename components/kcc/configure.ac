@@ -4,6 +4,6 @@ AM_INIT_AUTOMAKE([no-dependencies])
 # lex and yacc needed for cdecl
 AC_PROG_LEX
 AC_PROG_YACC
-AC_CONFIG_FILES([Makefile] [src/Makefile])
+AC_CONFIG_FILES([Makefile] [src/Makefile] [build.sh])
 AC_OUTPUT
 

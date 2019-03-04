@@ -1,0 +1,8 @@
+#!/bin/sh
+# Called from Makefile
+
+#TODO hide it somewhere
+export PATH="$(pwd)/perl5/bin:$PATH"
+export PERL5LIB="$(pwd)/perl5/lib/perl5"
+cd src && make
+

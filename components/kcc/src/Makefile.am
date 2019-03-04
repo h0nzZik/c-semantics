@@ -32,7 +32,7 @@ kcc.trace: $(srcdir)/kcc.pl $(MODULES)
 kcc.packages: kcc.trace
 	export PERL5LIB=$(CURDIR):$$PERL5LIB && fatpack packlists-for `cat $<` > $@
 
-kcc: kcc.packages writelong #RV_Kcc
+kcc: kcc.packages writelong RV_Kcc
 	@echo Fatpacking kcc
 	@echo `cat kcc.packages`
 	fatpack tree `cat kcc.packages`

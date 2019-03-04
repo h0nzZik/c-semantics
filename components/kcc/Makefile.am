@@ -3,11 +3,6 @@ srcdir = @srcdir@
 .PHONY: default
 default: all
 
-
-#export PATH = $(CURDIR)/perl5/bin:$(PATH)
-export PERL5LIB = $(CURDIR)/perl5/lib/perl5
-
-
 #$(CDECL)/src/cdecl: $(srcdir)/deps/$(CDECL).tar.gz
 
 CDECL = cdecl-3.6
@@ -46,7 +41,8 @@ perl-modules: perl5
 .PHONY: all
 all: cdecl perl-modules
 	@echo ALL
-	#cd src && env PATH=$(CURDIR)/../perl5/bin:$$PATH $(MAKE)
+	$(SHELL) build.sh
+#cd src && env PATH=$(CURDIR)/../perl5/bin:$$PATH $(MAKE)
 
 
 # dependency: perl-devel
