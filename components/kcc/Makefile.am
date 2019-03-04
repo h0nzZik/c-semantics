@@ -45,7 +45,8 @@ perl-modules: perl5
 
 .PHONY: all
 all: cdecl perl-modules
-	cd src && env PATH=$(CURDIR)/../perl5/bin:$$PATH $(MAKE)
+	@echo ALL
+	#cd src && env PATH=$(CURDIR)/../perl5/bin:$$PATH $(MAKE)
 
 
 # dependency: perl-devel

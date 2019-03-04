@@ -1,7 +1,7 @@
 srcdir = @srcdir@
 
 .PHONY: default
-default: kcc
+default: all
 
 
 # TODO autoconf may require gnu11 or C11
@@ -26,6 +26,7 @@ RV_Kcc: | $(MODULES)
 
 
 kcc.trace: $(srcdir)/kcc.pl $(MODULES)
+	@echo Path: $$PATH
 	fatpack trace --to=$@ $(srcdir)/kcc.pl
 
 kcc.packages: kcc.trace
@@ -38,6 +39,9 @@ kcc: kcc.packages writelong #RV_Kcc
 	cp -rf RV_Kcc fatlib
 	fatpack file $(srcdir)/kcc.pl > $@
 	chmod --reference=$(srcdir)/kcc.pl $@
+
+.PHONY: all
+all: kcc
 
 #########################
 ###### Distribution #####
