@@ -251,6 +251,25 @@ sub compileAll {
       }
 }
 
+sub getTranslationMatchCmd {
+      my ($lang, $kast, $pattern) = (@_);
+      #my @command = ('echo', 'Hello world');
+      my @command = (
+            #'echo',
+            KRUN,
+            '--debug',
+            '--verbose',
+            '--smt', 'none',
+            '--directory', profileDir(langToDef($lang)),
+            '--pattern', $pattern,
+            '--depth', '0',
+            '--bound', '1',
+            '--term', $kast,
+            '--parser', 'cat'
+      );
+      return @command;
+}
+
 sub compile {
       my ($oval, $inputFile, $lang) = (@_);
       if ($lang eq 'c' or $lang eq 'c++') {
@@ -261,6 +280,11 @@ sub compile {
             my @cmd = getTranslationCommand($kast, $inputFile, $lang, $uuid, $trampolines);
             debug("Compiling (C or C++) $inputFile.\n");
             shell(@cmd)->verbose()->run();
+
+            if (arg('-fmatch-translated=')) {
+                  shell(getTranslationMatchCmd($lang, $kast, arg('-fmatch-translated=')))->verbose()->run();
+            }
+
             if (arg('-fno-native-compilation')) {
                   shell(nativeCompiler(), '-c', getStd($lang), '-x', $lang, '/dev/null', '-o', $obj)->verbose()->run();
             } else {
@@ -504,14 +528,17 @@ sub getLinkingCommand {
       return @krun;
 }
 
+
+sub langToDef {
+      my ($lang) = (@_);
+
+      return $lang eq 'c++'? 'cpp14-translation-kompiled' : 'c11-translation-kompiled';
+}
+
 sub getTranslationCommand {
       my ($output, $src, $lang, $uuid, $trampolines) = (@_);
 
-      my $cTransDef = profileDir("c11-translation-kompiled");
-      my $cppTransDef = profileDir("cpp14-translation-kompiled");
-
-      my @krun = getKRunCommand($output, 'dummy',
-            $lang eq 'c++'? 'cpp14-translation-kompiled' : 'c11-translation-kompiled');
+      my @krun = getKRunCommand($output, 'dummy', langToDef($lang));
 
       if (arg('-ftranslation-depth=')) {
             push(@krun, '--depth');
