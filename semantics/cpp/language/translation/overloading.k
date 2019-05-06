@@ -132,6 +132,7 @@ module CPP-TRANSLATION-OVERLOADING
 
      context #resolveOverload(... cats: (HOLE:StrictList => cats(HOLE)))
 
+     // @ref n4296 13.2:2.8
      rule #resolveOverload(cSet(... candidates: (T:CPPFunctionType |-> envEntry(... defaultArgs: DA::DefaultArgumentsResult) => .Map) _), list(Args::List), krlist(Types::List), krlist(Cats::List), _, _)
           requires notBool acceptsNArgs(size(Args), T, getDefaultArgsVals(DA))
             orBool notViableTypes(T, Types, getDefaultArgsTypes(DA), Cats, getDefaultArgsCats(DA))
@@ -465,6 +466,7 @@ module CPP-TRANSLATION-OVERLOADING
 
      rule bestViable(T::CPPFunctionType, builtinOp(E::Expr)) ~> #resolveOverload(...) => E
 
+     // @ref n4296 13.3:2.9
      rule (.K => computeBestViable(M, Types, Cats, O))
           ~> #resolveOverload(cSet(... candidates: M::TypeMap), list(Args::List), krlist(Types::List), krlist(Cats::List), _, O::OverloadType)
           requires allViable(M, size(Args), Types, Cats) [owise] //allViable is expensive so we evaluate this rule late in order to avoid recomputing it over and over unnecessarily

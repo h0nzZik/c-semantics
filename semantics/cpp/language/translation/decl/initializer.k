@@ -17,6 +17,7 @@ module CPP-TRANSLATION-DECL-INITIALIZER-SYNTAX
 
      syntax KResult ::= "ill-formed"
 
+     // removes `explicit` functions
      syntax TypeMap ::= stripExplicit(TypeMap) [function]
 endmodule
 
@@ -518,7 +519,8 @@ module CPP-TRANSLATION-DECL-INITIALIZER
 
      // *** </ Aggregate initialization of an array >
 
-
+     // @ref n4296 13.3.1.3/1
+     // @ref n4800 11.3.1.3/1
      rule <k> (.K => resolveOverload(cSet(#if Type ==K DirectInit() #then M #else stripExplicit(M) #fi, C :: ConstructorId(X)), list(L), constructor))
               ~> constructorInit(Base::LVal, Type::InitType, _ :: Class(_, X::CId, _) #as C::Class, L::List, _)
           ...</k>
