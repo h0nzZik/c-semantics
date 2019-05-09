@@ -551,7 +551,9 @@ public:
       AddSpecifier("Constexpr");
     }
 
-    if (D->isThisDeclarationADefinition() || D->isExplicitlyDefaulted()) {
+    bool const defaultedOrDeleted = D->isExplicitlyDefaulted() || D->isDeleted();
+
+    if (D->isThisDeclarationADefinition() || defaultedOrDeleted) {
       AddKApplyNode("FunctionDefinition", 6);
     } else {
       AddKApplyNode("FunctionDecl", 5);
@@ -629,7 +631,8 @@ public:
           }
         }
       }
-      TRY_TO(TraverseStmt(D->getBody()));
+      if (!defaultedOrDeleted)  
+        TRY_TO(TraverseStmt(D->getBody()));
     }
     if (D->isExplicitlyDefaulted()) {
       AddKApplyNode("Defaulted", 0);
