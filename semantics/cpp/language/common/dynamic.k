@@ -973,6 +973,10 @@ module CPP-DYNAMIC-OTHER
 
      rule idOf(_ :: S::ClassSpecifier) => idOf(S)
 
+     rule idOf(Class(_, X::CId, _)) => X
+
+     rule idOf(_ :: S::ClassSpecifier) => idOf(S)
+
 endmodule // CPP-DYNAMIC-OTHER
 
 // ------------------------------
