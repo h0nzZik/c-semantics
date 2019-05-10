@@ -31,6 +31,7 @@ module CPP-TRANSLATION-DECL-CLASS-SYNTAX
                    | isNonTrivialDestructor(CPPType, K) [function]
                    | isTrivialDestructor(CPPType, K) [function]
                    | isVirtualDestructor(CPPType, K) [function]
+                   | isMoveAssignOp(CPPType, K) [function]
 
 
      // Compound constructor properties
@@ -774,6 +775,16 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
           ) => acceptsNArgs(1, T, getDefaultArgsVals(DA))
 
      rule isMoveConstructor(_, _) => false [owise]
+
+     // @ref n4296 12.8:19
+     rule isMoveAssignOp(
+               t(... st: functionType(...
+                    paramTypes: t(... st: rvRefType(t(... st: classType(C::Class)))),
+                    methodInfo: methodInfo(... class: C::Class))),
+               _
+          ) => true
+
+     rule isMoveAssignOp(_, _) => false [owise]
 
      rule isUserProvidedFunction(T::CPPType, _) => isMethodUserProvided(T)
 
