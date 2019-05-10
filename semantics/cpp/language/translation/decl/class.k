@@ -24,14 +24,14 @@ module CPP-TRANSLATION-DECL-CLASS-SYNTAX
                    | isCopyConstructor(CPPType, K) [function]
                    | isConstCopyConstructor(CPPType, K) [function]
                    | isMoveConstructor(CPPType, K) [function]
-                   | isUserProvidedConstructor(CPPType, K) [function]
+                   | isUserProvidedFunction(CPPType, K) [function]
                    | isUserProvidedDefaultConstructor(CPPType, K) [function]
                    | isDeleted(CPPType, K) [function]
                    | isDeletedDefaultConstructor(CPPType, K) [function, klabel(isDeletedDefaultConstructor2)]
                    | isNonTrivialDestructor(CPPType, K) [function]
                    | isTrivialDestructor(CPPType, K) [function]
-                   | isUserProvidedDestructor(CPPType, K) [function]
                    | isVirtualDestructor(CPPType, K) [function]
+
 
      // Compound constructor properties
      syntax Bool ::= isUserProvidedMoveConstructor(CPPType, K) [function]
@@ -236,6 +236,7 @@ module CPP-TRANSLATION-DECL-CLASS
               ~> listToK(Members)
               ~> implicitDeclarations()
               ~> implicitDeclarationOfCopyConstructor(C)
+              ~> implicitDeclarationOfMoveConstructor(C)
               ~> deferredActions(OldClass)
               ~> setScope(OldScope)
           ...</k>
@@ -268,7 +269,7 @@ module CPP-TRANSLATION-DECL-CLASS
           <tu-id> Tu </tu-id>
           <class-id> C </class-id>
           <cenv>... ConstructorId(X) |-> M::TypeMap DestructorId(X) |-> _ ...</cenv>
-          <is-aggregate> B:Bool => B andBool notBool some(M, #klabel(`isUserProvidedConstructor`)) andBool notBool hasVirtualMembers(type(classType(C))) </is-aggregate>
+          <is-aggregate> B:Bool => B andBool notBool some(M, #klabel(`isUserProvidedFunction`)) andBool notBool hasVirtualMembers(type(classType(C))) </is-aggregate>
 
      // TODO(dwightguth): implicit exception spec
      rule <k> (.K => AccessSpec(Public()) ~> Specifier(Inline(),
@@ -476,6 +477,44 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      // N4296 12.8:15.3
      rule copyOrMoveInitializeMember(E::Expr, T::CPPType) => E [owise]
 
+     syntax KItem ::= implicitDeclarationOfMoveConstructor(Class)
+
+     syntax Bool ::= shouldImplicitlyDeclareMoveCtor(Class) [function]
+
+     rule shouldImplicitlyDeclareMoveCtor(C::Class)
+          => notBool hasUserProvidedMoveConstructor(C)
+          andBool notBool hasUserProvidedCopyConstructor(C)
+          andBool notBool hasUserProvidedMoveAssignOp(C)
+          andBool notBool hasUserProvidedDestructor(C)
+
+     // @ref n4296 12.8:9
+     rule implicitDeclarationOfMoveConstructor(C::Class)
+          =>
+          #if shouldImplicitlyDeclareMoveCtor(C) #then
+               .K
+          #else
+               AccessSpec(Public()) ~>
+               Specifier(
+                    Inline(),
+                    FunctionDefinition(
+                         NoNNS(), ConstructorId(idOf(C)), #NoName,
+                         MethodPrototype(
+                              false, true, classType(C) *,
+                              FunctionPrototype(
+                                   type(void),
+                                   list(ListItem(classType(C) &&)),
+                                   NoExceptionSpec(),
+                                   false
+                              )
+                         ),
+                         ListItem(
+                              var("other") ofType (classType(C) &&)
+                         ),
+                         Defaulted(CopyConstructor(), C) unless (false/*TODO*/)
+                    )
+               )
+          #fi
+
      syntax List ::= directBaseClassesOf(Class) [function]
                    | #directBaseClassesOf(K)    [function]
                    | nonStaticDataMembersOf(Class) [function]
@@ -510,7 +549,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      rule isMoveConstructor(_, _) => false [owise]
 
      syntax Bool ::= isExplicitlyDeclaredCopyConstructor(CPPType, K) [function]
-     rule isExplicitlyDeclaredCopyConstructor(T::CPPType, K::K) => isUserProvidedConstructor(T, K) andBool isCopyConstructor(T, K)
+     rule isExplicitlyDeclaredCopyConstructor(T::CPPType, K::K) => isUserProvidedFunction(T, K) andBool isCopyConstructor(T, K)
 
      syntax Stmt ::= "TwriteVTables"
 
@@ -613,16 +652,16 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      rule isDeletedDefaultConstructor(X::CId, T::CPPType, C::Class, FuncT::CPPType, VM::Set, _) => true
           requires X in VM andBool isUnionLikeClass(C) andBool #fun(InnerT::CPPType => isCPPClassType(InnerT)
                andBool hasConstructorThat(InnerT, #klabel(`isNonTrivialDefaultConstructor`)))(getMostDerivedArrayElement(T))
-               andBool notBool isUserProvidedConstructor(FuncT, .K)
+               andBool notBool isUserProvidedFunction(FuncT, .K)
 
      // @ref n4296 12.1:4.2
      rule isDeletedDefaultConstructor(_, cppRefType #as T::CPPType, C::Class, FuncT::CPPType, _, NoInit()) => true
-          requires notBool isUserProvidedConstructor(FuncT, .K)
+          requires notBool isUserProvidedFunction(FuncT, .K)
 
      // @ref n4296 12.1:4.3
      rule isDeletedDefaultConstructor(X::CId, T::CPPType, _, FuncT::CPPType, VM::Set, NoInit()) => true
           requires notBool X in VM andBool #fun(InnerT::CPPType => isCPPClassType(InnerT) andBool isConstType(InnerT) andBool notBool hasConstructorThat(InnerT, #klabel(`isUserProvidedDefaultConstructor`)))(getMostDerivedArrayElement(T))
-               andBool notBool isUserProvidedConstructor(FuncT, .K)
+               andBool notBool isUserProvidedFunction(FuncT, .K)
 
      rule isDeletedDefaultConstructor(_::CId, _, _, _, _, _) => false [owise]
 
@@ -630,7 +669,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      rule <k> figureConstruct(.List, _, .List, .List, _, _, false) => Deleted() ...</k>
           <curr-tr-scope> blockScope((_::ClassQualifier :: Class(Union(), _, _)) #as C::Class :: ConstructorId(_), Base::SymBase, _) </curr-tr-scope>
           <functions>... Base |-> functionObject(_, FuncT::CPPType, _, _) ...</functions>
-          requires notBool isUserProvidedConstructor(FuncT, .K)
+          requires notBool isUserProvidedFunction(FuncT, .K)
 
 
      syntax KItem ::= figureConstructItem(memInit: K, CId, CPPType, isMember: Bool)
@@ -702,7 +741,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
                    | #isDeleted(SymBase, K) [function]
 
      // @ref n4296 12.1:4.8
-     rule isTrivialDefaultConstructor(T::CPPType, K:K) => isDefaultConstructor(T, K) andBool notBool isUserProvidedConstructor(T, K) andBool notBool hasVirtualMembers(type(classType(getMethodClass(T)))) andBool #isTrivialDefaultConstructor(getClassInfo(getMethodClass(T)))
+     rule isTrivialDefaultConstructor(T::CPPType, K:K) => isDefaultConstructor(T, K) andBool notBool isUserProvidedFunction(T, K) andBool notBool hasVirtualMembers(type(classType(getMethodClass(T)))) andBool #isTrivialDefaultConstructor(getClassInfo(getMethodClass(T)))
 
      // @ref n4296 12.1:4.10
      rule #isTrivialDefaultConstructor(<class>... <base-classes> ListItem(C::Class) => .List ...</base-classes> ...</class>)
@@ -736,17 +775,18 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
 
      rule isMoveConstructor(_, _) => false [owise]
 
-     rule isUserProvidedConstructor(T::CPPType, _) => isMethodUserProvided(T)
-
-     rule isUserProvidedDestructor(T::CPPType, _) => isMethodUserProvided(T)
+     rule isUserProvidedFunction(T::CPPType, _) => isMethodUserProvided(T)
 
      rule isVirtualDestructor(T::CPPType, _) => isMethodVirtual(T)
 
-     rule isUserProvidedDefaultConstructor(T::CPPType, K:K) => isDefaultConstructor(T, K) andBool isUserProvidedConstructor(T, K)
+     rule isUserProvidedDefaultConstructor(T::CPPType, K:K) => isDefaultConstructor(T, K) andBool isUserProvidedFunction(T, K)
 
-     rule isUserProvidedMoveConstructor(T::CPPType, K:K) => isUserProvidedConstructor(T, K) andBool isMoveConstructor(T, K)
+     rule isUserProvidedMoveConstructor(T::CPPType, K:K) => isUserProvidedFunction(T, K) andBool isMoveConstructor(T, K)
 
-     rule isUserProvidedCopyConstructor(T::CPPType, K:K) => isUserProvidedConstructor(T, K) andBool isCopyConstructor(T, K)
+     rule isUserProvidedCopyConstructor(T::CPPType, K:K) => isUserProvidedFunction(T, K) andBool isCopyConstructor(T, K)
+
+
+     syntax Bool ::= isUserProvidedMoveAssignOp(CPPType, K) [function]
 
      // 'has' queries
      // -------------
@@ -868,7 +908,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      rule isDeletedDefaultDestructor(X::CId, T::CPPType, C::Class, FuncT::CPPType, VM::Set) => true
           requires X in VM andBool isUnionLikeClass(C) andBool #fun(InnerT::CPPType => isCPPClassType(InnerT)
                andBool hasDestructorThat(InnerT, #klabel(`isNonTrivialDestructor`)))(getMostDerivedArrayElement(T))
-               andBool notBool isUserProvidedDestructor(FuncT, .K)
+               andBool notBool isUserProvidedFunction(FuncT, .K)
 
      rule isDeletedDefaultDestructor(_::CId, _, _, _, _) => false [owise]
 
@@ -906,7 +946,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      syntax Bool ::= #isTrivialDestructor(ClassInfo) [function]
 
      // @ref n4296 12.4:5.4
-     rule isTrivialDestructor(T::CPPType, K:K) => notBool isUserProvidedDestructor(T, K) andBool notBool isMethodVirtual(T) andBool #isTrivialDestructor(getClassInfo(getMethodClass(T)))
+     rule isTrivialDestructor(T::CPPType, K:K) => notBool isUserProvidedFunction(T, K) andBool notBool isMethodVirtual(T) andBool #isTrivialDestructor(getClassInfo(getMethodClass(T)))
 
      rule #isTrivialDestructor(<class>... <base-classes> ListItem(C::Class) => .List ...</base-classes> ...</class>)
           requires hasDestructorThat(type(classType(C)), #klabel(`isTrivialDestructor`))
@@ -990,8 +1030,8 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
                  <base-classes> .List </base-classes>
                ...</class>)
           => notBool (#hasMethodThat(operator=, getClassInfo(T), #klabel(`isUserProvidedCopyAssignment`))
-               orBool hasDestructorThat(T, #klabel(`isUserProvidedDestructor`))
-               orBool hasConstructorThat(T, #klabel(`isUserProvidedConstructor`))
+               orBool hasDestructorThat(T, #klabel(`isUserProvidedFunction`))
+               orBool hasConstructorThat(T, #klabel(`isUserProvidedFunction`))
                orBool hasVirtualMembers(T))
                andBool (Key ==K Struct() orBool Key ==K Union())
 
@@ -1011,8 +1051,8 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
                  <base-classes> .List </base-classes>
                ...</class>)
           => notBool (#hasMethodThat(operator=, getClassInfo(T), #klabel(`isUserProvidedCopyAssignment`))
-               orBool hasDestructorThat(T, #klabel(`isUserProvidedDestructor`))
-               orBool hasConstructorThat(T, #klabel(`isUserProvidedConstructor`))
+               orBool hasDestructorThat(T, #klabel(`isUserProvidedFunction`))
+               orBool hasConstructorThat(T, #klabel(`isUserProvidedFunction`))
                orBool hasVirtualMembers(T))
                andBool (Key ==K Struct() orBool Key ==K Union())
 
