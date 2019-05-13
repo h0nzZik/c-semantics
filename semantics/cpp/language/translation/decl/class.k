@@ -788,6 +788,9 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
 
      rule isUserProvidedFunction(T::CPPType, _) => isMethodUserProvided(T)
 
+     rule isUserProvidedMoveAssignOp(T::CPPType, K::K)
+          => isMoveAssignOp(T, K) andBool isUserProvidedFunction(T, K)
+
      rule isVirtualDestructor(T::CPPType, _) => isMethodVirtual(T)
 
      rule isUserProvidedDefaultConstructor(T::CPPType, K:K) => isDefaultConstructor(T, K) andBool isUserProvidedFunction(T, K)
@@ -796,8 +799,6 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
 
      rule isUserProvidedCopyConstructor(T::CPPType, K:K) => isUserProvidedFunction(T, K) andBool isCopyConstructor(T, K)
 
-
-     syntax Bool ::= isUserProvidedMoveAssignOp(CPPType, K) [function]
 
      // 'has' queries
      // -------------
