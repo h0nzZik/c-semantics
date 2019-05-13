@@ -738,6 +738,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
           requires HasNonConst orBool T =/=K Union()
 
      syntax Bool ::= #isTrivialDefaultConstructor(ClassInfo) [function]
+                   | "Class.hasMethodThat" "(" Class "," CId "," K ")" [function]
                    | #hasMethodThat(CId, ClassInfo, K) [function]
                    | #isDeleted(SymBase, K) [function]
 
@@ -851,6 +852,9 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
           => some(M, Lbl)
 
      rule #hasMethodThat(...) => false [owise]
+
+     rule Class.hasMethodThat(C::Class, X::CId, Lbl:K)
+          => #hasMethodThat(X, getClassInfo(C), Lbl)
 
      rule isDeleted(_, envEntry(... base: Base::SymBase)) => #isDeleted(Base, #configuration)
 
