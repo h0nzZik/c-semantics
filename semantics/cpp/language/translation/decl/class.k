@@ -60,6 +60,7 @@ module CPP-TRANSLATION-DECL-CLASS-SYNTAX
                    | hasUserProvidedMoveAssignOp(Class) [function]
                    | hasUserProvidedMoveConstructor(Class) [function]
                    | hasUserProvidedCopyConstructor(Class) [function]
+                   | hasUserProvidedDestructor(Class) [function]
 
      syntax Bool ::= isPODLayoutType(CPPType) [function]
 
@@ -822,7 +823,10 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      rule hasUserProvidedMoveAssignOp(C::Class)
           => Class.hasMethodThat(C, operator=, #klabel(`isUserProvidedMoveAssignOp`))
 
-     rule hasDestructor(T::CPPType)
+     rule hasUserProvidedDestructor(C::Class)
+          => hasDestructorThat(C, #klabel(`isUserProvidedFunction`))
+
+     rule hasDestructor(T::CPPClassType)
           => hasDestructorThat(T, #klabel(`isWhatever`))
 
      rule hasDestructor(C::Class)
