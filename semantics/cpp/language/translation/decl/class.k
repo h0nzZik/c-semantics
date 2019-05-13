@@ -819,8 +819,8 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      rule hasUserProvidedCopyConstructor(C::Class)
           => hasConstructorThat(C, #klabel(`isUserProvidedCopyConstructor`))
 
-     rule hasUserProvidedMoveAssignOp(_)
-          => false // TODO(jantusil)
+     rule hasUserProvidedMoveAssignOp(C::Class)
+          => Class.hasMethodThat(C, operator=, #klabel(`isUserProvidedMoveAssignOp`))
 
      rule hasDestructor(T::CPPType)
           => hasDestructorThat(T, #klabel(`isWhatever`))
