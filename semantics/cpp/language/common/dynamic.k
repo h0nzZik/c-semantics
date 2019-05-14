@@ -466,6 +466,8 @@ module CPP-DYNAMIC-OTHER-SYNTAX
                      | showQualId(QualId) [function]
 
      syntax Bool ::= isValKLabel(K) [function, klabelPredicate]
+                   | isGLValKLabel(K) [function, klabelPredicate]
+                   | isRValKLabel(K) [function, klabelPredicate]
 
      syntax Bool ::= isTExprKLabel(K) [function, klabelPredicate]
 
@@ -558,6 +560,14 @@ module CPP-DYNAMIC-OTHER
      rule isValKLabel(#klabel(`lvcpp`)) => true
 
      rule isValKLabel(_) => false [owise]
+
+     rule isGLValKLabel(#klabel(`xv`)) => true
+     rule isGLValKLabel(#klabel(`lvcpp`)) => true
+     rule isGLValKLabel(_) => false [owise]
+
+     rule isRValKLabel(#klabel(`prv`)) => true
+     rule isRValKLabel(#klabel(`xv`)) => true
+     rule isRValKLabel(_) => false [owise]
 
      rule isTExprKLabel(#klabel(`pre`)) => true
 
