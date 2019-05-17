@@ -646,6 +646,12 @@ module CPP-TYPING
      rule isPointerToFunctionType(T::CPPType)
           => isCPPPointerType(T) andBool isCPPFunctionType(innerType(T))
 
+     rule isPointerToObjectType(T::CPPType)
+          => isCPPPointerType(T) andBool isObjectType(innerType(T))
+
+     rule isPointerToFunctionType(T::CPPType)
+          => isCPPPointerType(T) andBool isCPPFunctionType(innerType(T))
+
      rule utype(V::Val) => utype(type(V))
 
      rule utype(t(_, Mods::Set, T::CPPSimpleType)) => t(noQuals, Mods, T)
