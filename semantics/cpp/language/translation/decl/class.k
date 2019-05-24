@@ -330,7 +330,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
      rule Defaulted(SMF::SpecialMemberFunction, C::Class) unless(false) => OnlyIfOdrUsed(Defaulted(SMF, C))
 
      syntax SpecialMemberFunction ::= DefaultConstructor()
-                                    | CopyConstructor()
+                                    | CopyMoveConstructor()
                                     | MoveConstructor()
                                     | CopyAssignOp()
                                     | MoveAssignOp()
@@ -408,14 +408,14 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
                                    #fi
                               )
                          ),
-                         Defaulted(CopyConstructor(), C) unless (hasUserProvidedMoveConstructor(C) orBool hasUserProvidedMoveAssignOp(C))
+                         Defaulted(CopyMoveConstructor(), C) unless (hasUserProvidedMoveConstructor(C) orBool hasUserProvidedMoveAssignOp(C))
                     )
                )
           #fi
 
      syntax KItem ::= eachPotentiallyConstructedSubobjectConstCopyable()
 
-     rule Defaulted(CopyConstructor(), C::Class) => Constructor(copyConstructorInitializers(directBaseClassesOf(C), nonStaticDataMembersOf(C)), EmptyBlock())
+     rule Defaulted(CopyMoveConstructor(), C::Class) => Constructor(copyConstructorInitializers(directBaseClassesOf(C), nonStaticDataMembersOf(C)), EmptyBlock())
 
      // Construct the initializer list
      syntax List ::= copyConstructorInitializers(bases: List, dataMembers: List) [function]
@@ -512,7 +512,7 @@ syntax Stmt ::= Defaulted(SpecialMemberFunction, Class) [klabel(DefaultedSMF)]
                          ListItem(
                               var("other") ofType (classType(C) &&)
                          ),
-                         Defaulted(CopyConstructor(), C) unless (false/*TODO*/)
+                         Defaulted(CopyMoveConstructor(), C) unless (false/*TODO*/)
                     )
                )
           #fi
