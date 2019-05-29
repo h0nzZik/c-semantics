@@ -359,6 +359,8 @@ module CPP-DYNAMIC-OTHER-SYNTAX
 
      syntax ValueCategory ::= cat(Typed) [function]
 
+     syntax SymLoc ::= locOf(GLVal) [function]
+
      syntax Bool ::= Execution() [function]
                    | Translation() [function]
 
@@ -488,9 +490,11 @@ module CPP-DYNAMIC-OTHER-SYNTAX
 
      syntax Expr ::= makeXVal(K)
 
-     syntax Val ::= makeVal(ValueCategory, CPPValue, Trace, CPPType) [function]
+     syntax LocOrVal ::= CPPValue | SymLoc
 
-     syntax Val ::= makeExpr(ValueCategory, Expr, Trace, CPPType) [function]
+     syntax Val ::= makeVal(ValueCategory, LocOrVal, Trace, CPPType) [function]
+
+     syntax TExpr ::= makeExpr(ValueCategory, Expr, Trace, CPPType) [function]
 
      // synthetic sort for KResults that result from expressions, but aren't actually values
      syntax ValResult
@@ -683,6 +687,10 @@ module CPP-DYNAMIC-OTHER
      context HOLE:AType typeStrict:: _ [result(CPPType)]
 
      context K:KResult typeStrict:: HOLE:STypeStrictList
+
+     rule locOf(lv(L::SymLoc, _, _)) => L
+
+     rule locOf(xv(L::SymLoc, _, _)) => L
 
      rule trace(lv(_, Tr::Trace, _)) => Tr
 
@@ -944,11 +952,11 @@ module CPP-DYNAMIC-OTHER
 
      rule makeXVal(le(E::Expr, Tr::Trace, T::CPPType)) => xe(E, Tr, T)
 
-     rule makeVal(lvalue, V::SymLoc, Tr::Trace, T::CPPType) => lv(V, Tr, T)
+     rule makeVal(lvalue, V:SymLoc, Tr::Trace, T::CPPType) => lv(V, Tr, T)
 
-     rule makeVal(xvalue, V::SymLoc, Tr::Trace, T::CPPType) => xv(V, Tr, T)
+     rule makeVal(xvalue, V:SymLoc, Tr::Trace, T::CPPType) => xv(V, Tr, T)
 
-     rule makeVal(prvalue, V::CPPValue, Tr::Trace, T::CPPType) => prv(V, Tr, T)
+     rule makeVal(prvalue, V:CPPValue, Tr::Trace, T::CPPType) => prv(V, Tr, T)
 
      rule makeExpr(lvalue, V::Expr, Tr::Trace, T::CPPType) => le(V, Tr, T)
 
