@@ -691,19 +691,50 @@ module CPP-TRANSLATION-OVERLOADING
           => bestViable(T, K)
 
      syntax KItem ::= isBetterFunctionThan(CPPType, K, CPPType, K, List, List, OverloadType)
-                    | #isBetterFunctionThan(KItem, KItem, CPPType, K, CPPType, K, List, List, OverloadType) [strict(1,2)]
 
-     rule isBetterFunctionThan(F1::CPPType, K1:K, F2::CPPType, K2:K, Types::List, Cats::List, NotConversionOverload())
-          => #isBetterFunctionThan(
+     rule isBetterFunctionThan(F1::CPPType, K1:K, F2::CPPType, K2:K, Types::List, Cats::List, OT::OverloadType)
+          => #isBetterFunctionThan1(
                hasWorseConversionSequenceThan(F1, F2, Types, Cats),
-               hasBetterConversionSequenceThan(F1, F2, Types, Cats),
-               F1, K1, F2, K2, Types, Cats, NotConversionOverload()
+               F1, K1, F2, K2, Types, Cats, OT
           )
           requires notBool (isTemplateSpecialization(K1) andBool isTemplateSpecialization(K2))
 
-     // TODO(dwightguth): n4296 13.3.3:1.4,1.5,1.7
-     rule #isBetterFunctionThan(
+     syntax KItem ::= #isBetterFunctionThan1(KItem, CPPType, K, CPPType, K, List, List, OverloadType) [strict(1)]
+
+     // @ref n4296 13.3.3/1
+     // <quote>
+     // a viable function F1 is defined to be a better function than another viable function
+     // F2 if for all arguments i, ICSi(F1) is not a worse conversion sequence than ICSi(F2), and then
+     // </quote>
+     rule #isBetterFunctionThan1(
                HasWorseCS:Bool,
+               F1::CPPType,
+               K1:K,
+               F2::CPPType,
+               K2:K,
+               Types::List,
+               Cats::List,
+               OT::OverloadType
+          )
+          =>
+          #if HasWorseCS #then
+               false
+          #else
+               #isBetterFunctionThan2(
+                    hasBetterConversionSequenceThan(F1, F2, Types, Cats),
+                    F1, K1, F2, K2, Types, Cats, OT
+               )
+          #fi
+
+
+     syntax KItem ::= #isBetterFunctionThan2(KItem, CPPType, K, CPPType, K, List, List, OverloadType) [strict(1)]
+
+     // @ref n4296 13.3.3/1.3
+     // <quote>
+     // for some argument j, ICSj(F1) is a better conversion sequence than ICSj(F2),
+     // or, if not that
+     // </quote>
+     rule #isBetterFunctionThan2(
                HasBetterCS:Bool,
                F1::CPPType,
                K1:K,
@@ -711,9 +742,110 @@ module CPP-TRANSLATION-OVERLOADING
                K2:K,
                Types::List,
                Cats::List,
-               NotConversionOverload()
+               OT::OverloadType
           )
-          => notBool HasWorseCS andBool (HasBetterCS orBool (notBool isTemplateSpecialization(K1) andBool isTemplateSpecialization(K2)))
+          =>
+          #if HasBetterCS #then
+               true
+          #else
+               #isBetterFunctionThan3(F1, K1, F2, K2, Types, Cats, OT)
+          #fi
+
+     syntax KItem ::= #isBetterFunctionThan3(CPPType, K, CPPType, K, List, List, OverloadType) [strict(1)]
+
+     // @ref n4296 13.3.3/1.4
+     // <quote>
+     // the context is an initialization by user-defined conversion
+     // (see 8.5, 13.3.1.5, and 13.3.1.6) and the
+     // standard conversion sequence from the return type of F1
+     // to the destination type (i.e., the type of the
+     // entity being initialized) is a better conversion sequence
+     // than the standard conversion sequence from
+     // the return type of F2 to the destination type.
+     // </quote>
+     rule #isBetterFunctionThan3(
+               t(... st: functionType(... returnType: R1::CPPType)) #as F1::CPPType,
+               K1:K,
+               t(... st: functionType(... returnType: R2::CPPType)) #as F2::CPPType,
+               K2:K,
+               Types::List,
+               Cats::List,
+               ConversionOverload(T::CPPType) #as OT::OverloadType
+          )
+          =>
+          #if computeSCS(T, R1, catOfFunctionCall(R1), false) >CS computeSCS(T, R2, catOfFunctionCall(R2), false)
+          #then
+               true
+          #else
+               #isBetterFunctionThan4(F1, K1, F2, K2, Types, Cats, OT)
+          #fi
+
+     // skip
+     rule #isBetterFunctionThan3(F1::CPPType, K1:K, F2::CPPType, K2:K, Types::List, Cats::List, OT::OverloadType)
+          => #isBetterFunctionThan4(F1, K1, F2, K2, Types, Cats, OT)
+          requires ConversionOverload(_) :/=K OT
+
+     syntax KItem ::= #isBetterFunctionThan4(CPPType, K, CPPType, K, List, List, OverloadType) [strict(1)]
+
+     // @ref n4296 13.3.3/1.5
+     // <quote>
+     // the context is an initialization by conversion function
+     // for direct reference binding (13.3.1.6) of a reference to function type,
+     // the return type of F1 is the same kind of reference (i.e. lvalue or rvalue)
+     // as the reference being initialized, and the return type of F2 is not
+     // </quote>
+     rule #isBetterFunctionThan4(
+               t(... st: functionType(... returnType: t(... st: R1::CPPSimpleType))) #as F1::CPPType,
+               K1:K,
+               t(... st: functionType(... returnType: t(... st: R2::CPPSimpleType))) #as F2::CPPType,
+               K2:K,
+               Types::List,
+               Cats::List,
+               RefConversionOverload(t(... st: R::CPPSimpleType)) #as OT::OverloadType
+          )
+          =>
+          #if isCPPFunctionType(innerType(R))
+          andBool isSameKindOfReference(R1, R)
+          andBool notBool isSameKindOfReference(R2, R)
+          #then
+               true
+          #else
+               #isBetterFunctionThan4(F1, K1, F2, K2, Types, Cats, OT)
+          #fi
+
+     // skip
+     rule #isBetterFunctionThan4(F1::CPPType, K1:K, F2::CPPType, K2:K, Types::List, Cats::List, OT::OverloadType)
+          => #isBetterFunctionThan5(F1, K1, F2, K2, Types, Cats, OT)
+          requires RefConversionOverload(_) :/=K OT
+
+     syntax KItem ::= #isBetterFunctionThan5(CPPType, K, CPPType, K, List, List, OverloadType) [strict(1)]
+
+     // @ref n4296 13.3.3/1.6
+     // <quote>
+     // F1 is not a function template specialization
+     // and F2 is a function template specialization, or, if not that,
+     // </quote>
+     rule #isBetterFunctionThan5(F1::CPPType, K1:K, F2::CPPType, K2:K, Types::List, Cats::List, OT::OverloadType )
+          =>
+          #if notBool isTemplateSpecialization(K1)
+               andBool isTemplateSpecialization(K2)
+          #then
+               true
+          #else
+               #isBetterFunctionThan6(F1, K1, F2, K2, Types, Cats, OT)
+          #fi
+
+     syntax KItem ::= #isBetterFunctionThan6(CPPType, K, CPPType, K, List, List, OverloadType) [strict(1)]
+
+     // TODO(h0nzZik) n4296 13.3.3/1.7
+     // <quote>
+     // F1 and F2 are function template specializations,
+     // and the function template for F1 is more specialized
+     // than the template for F2 according to the partial ordering rules described in 14.5.6.2.
+     // </quote>
+     rule #isBetterFunctionThan6(F1::CPPType, K1:K, F2::CPPType, K2:K, Types::List, Cats::List, OT::OverloadType)
+          => false
+
 
      syntax KItem ::= KItem "orB" KItem [strict(1)]
                     | KItem "andB" KItem [strict(1)]

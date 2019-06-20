@@ -160,6 +160,8 @@ module CPP-TYPING-SYNTAX
 
      syntax CPPSimpleRVRefType ::= rvRefType(CPPType)
 
+     syntax Bool ::= isSameKindOfReference(CPPSimpleType, CPPSimpleType) [function]
+
      syntax CPPSimpleFunctionType ::= functionType(returnType: CPPType, paramTypes: CPPTypes, methodInfo: MethodInfo, linkage: LanguageLinkage, exceptions: ExceptionSet) [klabel(cppFunctionType)]
 
      syntax CPPSimpleClassType ::= classType(Class)
@@ -369,6 +371,8 @@ module CPP-TYPING-SYNTAX
      syntax Bool ::= isUnnamedLValue(CPPType) [function]
                    | isUnnamedXValue(CPPType) [function]
                    | isUnnamedPRValue(CPPType) [function]
+
+     syntax ValueCategory ::= catOfFunctionCall(returnType: CPPType) [function]
 
      syntax DefaultArgumentsResult ::= emptyDefaultArguments(CPPType) [function]
 
@@ -878,6 +882,16 @@ module CPP-TYPING
      rule isUnnamedPRValue(T::CPPType)
           => notBool isUnnamedLValue(T) andBool notBool isUnnamedXValue(T)
 
+
+     rule catOfFunctionCall(T::CPPType) => lvalue
+          requires isUnnamedLValue(T)
+
+     rule catOfFunctionCall(T::CPPType) => xvalue
+          requires isUnnamedXValue(T)
+
+     rule catOfFunctionCall(T::CPPType) => prvalue
+          requires isUnnamedPRValue(T)
+
      rule getBaseClassSubobject(lv(L::SymLoc, Tr::Trace, D::CPPType), B::CPPType) => lv(baseClassSubobject(L, B, D), Tr, B)
 
      rule getBaseClassOffset(Base::Class, Derived::Class)
@@ -1204,5 +1218,12 @@ module C-CPP-TYPING
      rule isCPPWideCharType(_) => false [owise]
      rule isCPPCharType(t(... st: _:CPPSimpleCharType)) => true
      rule isCPPCharType(_) => false [owise]
+
+     rule isSameKindOfReference(lvRefType(_), lvRefType(_)) => true
+     rule isSameKindOfReference(lvRefType(_), rvRefType(_)) => false
+     rule isSameKindOfReference(rvRefType(_), lvRefType(_)) => false
+     rule isSameKindOfReference(rvRefType(_), rvRefType(_)) => true
+     rule isSameKindOfReference(...) => false [owise]
+
 
 endmodule

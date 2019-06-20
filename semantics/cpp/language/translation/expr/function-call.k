@@ -37,6 +37,7 @@ module CPP-TRANSLATION-EXPR-FUNCTION-CALL
 
      syntax List ::= bindParams(List, List, List) [function]
 
+     // TODO why CopyInit and not DirectInit?
      rule bindParams(ListItem(T:CPPType) P::List, ListItem(Init::Init) A::List, ListItem(_) DArgs::List)
           => ListItem(figureInit(le(temp(!I:Int, T), noTrace, T), T, Init, CopyInit())) bindParams(P, A, DArgs)
           requires notBool (isCPPRefType(T) andBool isExpr(Init))
