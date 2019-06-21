@@ -160,6 +160,10 @@ module CPP-TYPING-SYNTAX
 
      syntax CPPSimpleRVRefType ::= rvRefType(CPPType)
 
+     syntax ReferenceKind ::= "lvRefKind" | "rvRefKind"
+                            | refKind(CPPSimpleType)
+                            | refKind(CPPType)
+
      syntax Bool ::= isSameKindOfReference(CPPSimpleType, CPPSimpleType) [function]
 
      syntax CPPSimpleFunctionType ::= functionType(returnType: CPPType, paramTypes: CPPTypes, methodInfo: MethodInfo, linkage: LanguageLinkage, exceptions: ExceptionSet) [klabel(cppFunctionType)]
@@ -1225,5 +1229,8 @@ module C-CPP-TYPING
      rule isSameKindOfReference(rvRefType(_), rvRefType(_)) => true
      rule isSameKindOfReference(...) => false [owise]
 
+     rule refKind(lvRefType(_)) => lvRefKind
+     rule refKind(rvRefType(_)) => rvRefKind
+     rule refKind(T::CPPType) => refKind(simpleType(T))
 
 endmodule
