@@ -212,10 +212,13 @@ module CPP-TRANSLATION-DECL-INITIALIZER
           => constructorInit(Base, Type, DestC, ListItem(E), IsConstructor)
           requires Type ==K DirectInit() orBool (isCPPClassType(SrcT) andBool isBaseClassOf(DestT, SrcT))
 
+/*
      // TODO @ref n4296 8.5:17.6.2
+     // FIXME introduces nondeterminism
      rule #figureInit(Base:LVal, t(... st: classType(DestC::Class)) #as DestT::CPPType, Type::InitType, E:Expr, SrcT::CPPType, _, IsConstructor::ConstructorType)
-          => not-implemented /* constructorInit(Base, Type, DestC, ListItem(E), IsConstructor) */
+          => not-implemented // constructorInit(Base, Type, DestC, ListItem(E), IsConstructor)
           requires Type ==K CopyInit() andBool notBool (isCPPClassType(SrcT) andBool isBaseClassOf(DestT, SrcT))
+*/
 
      rule #figureInit(Base:LVal, t(... st: classType(DestC::Class)), DirectInit(), ExpressionList(L::List), _, _, IsConstructor::ConstructorType)
           => constructorInit(Base, DirectInit(), DestC, L, IsConstructor)
