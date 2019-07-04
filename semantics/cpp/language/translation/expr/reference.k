@@ -9,23 +9,6 @@ module CPP-TRANSLATION-EXPR-REFERENCE
      imports CPP-TYPING-SYNTAX
      imports CPP-TRANSLATION-DECL-INITIALIZER-SYNTAX
 
-/*
-     rule bindReference(L:LVal, R:Val) => le(bindReferenceExec(L, R), trace(L), type(L))
-          requires Translation()
-          andBool (notBool isEvalVal(L) orBool notBool isEvalVal(R))
-
-     // we need this result tag because lvalues of reference type aren't KResults
-     context bindReference(HOLE:Expr, _) [result(LVal)]
-
-     rule <k> bindReference(lv(Loc1::SymLoc, Tr::Trace, T1::CPPType), lv(Loc2::SymLoc, _, T2::CPPType))
-              => lv(Loc1, Tr, T1) ...</k>
-          <references>... .Map => stripProv(Loc1) |-> Loc2 ...</references>
-          requires Translation() andBool isCPPLVRefType(T1) andBool notBool isCPPBitfieldType(T2) andBool isReferenceCompatible(innerType(T1), T2)
-*/
-
-     // TODO: use `cat(...)` and `type(...)` and `temp(...)`
-
-
      context bindReference(HOLE:Expr, _) [result(LVal)]
 
      rule bindReference(L:LVal, R:Val) => bindReference2(L, R)
