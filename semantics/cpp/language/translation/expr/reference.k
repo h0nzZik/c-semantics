@@ -2,6 +2,7 @@ module CPP-TRANSLATION-EXPR-REFERENCE
      imports C-CONFIGURATION
      imports BOOL
      imports SYMLOC-SYNTAX
+     imports CPP-ABSTRACT-SYNTAX
      imports CPP-DYNAMIC-SYNTAX
      imports CPP-REFERENCE-SYNTAX
      imports CPP-SYNTAX
@@ -25,7 +26,6 @@ module CPP-TRANSLATION-EXPR-REFERENCE
      // TODO: use `cat(...)` and `type(...)` and `temp(...)`
 
 
-     // we need this result tag because lvalues of reference type aren't KResults
      context bindReference(HOLE:Expr, _) [result(LVal)]
 
      rule bindReference(L:LVal, R:Val) => bindReference2(L, R)
@@ -66,7 +66,7 @@ module CPP-TRANSLATION-EXPR-REFERENCE
 
      rule bindReferenceToTemporary(V1::LVal, Temp::Expr, T::CPPType, V2::Val)
           =>
-          figureInit(le(Temp, noTrace, T), T, V2, CopyInit()) // TODO copy or direct?
+          TExpressionStmt(figureInit(le(Temp, noTrace, T), T, V2, CopyInit())) // TODO copy or direct?
           ~>
           bindReferenceExec(V1, le(Temp, noTrace, T))
 
